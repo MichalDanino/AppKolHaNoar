@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "AppKolHaNoar",
+  "display": "standalone",
+  "name": "AppKolHaNoar",
+  "short_name": "AppKolHaNoar",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}
