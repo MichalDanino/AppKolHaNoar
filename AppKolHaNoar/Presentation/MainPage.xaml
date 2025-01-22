@@ -19,12 +19,29 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Spacing="16">
-        <TextBox Text="{Binding Name, Mode=TwoWay}"
+        <!--<TextBox Text="{Binding Name, Mode=TwoWay}"
             PlaceholderText="Enter your name:" />
         <Button Content="Go to Second Page"
             AutomationProperties.AutomationId="SecondPageButton"
-            Command="{Binding GoToSecond}" />
-      </StackPanel>
+            Command="{Binding GoToSecond}" />-->
+                <Button Content="כמות" Grid.Column="0" Grid.Row="0" Margin="10" />
+                <Button Content="URL" Grid.Column="1" Grid.Row="0" Margin="10"  />
+
+                <!-- Row 2 -->
+                <Button Content="הוספת ערוץ" Grid.Column="1" Grid.Row="1" Margin="10" />
+                <TextBox Name="URL" Text="{Binding Name, Mode=TwoWay}"
+            PlaceholderText="Enter your name:" Grid.Column="1" Grid.Row="2" />
+                <!-- Row 3 -->
+                <Button Content="סיסמה" Grid.ColumnSpan="2" Grid.Row="2" HorizontalAlignment="Center" Margin="10" />
+
+                <!-- Row 4 -->
+                <Button Content="שינוי סיסמה" Grid.Column="1" Grid.Row="3" Margin="10" />
+                <Button Content="הפעל קמפיין" Grid.Column="0" Grid.Row="3" Margin="10" />
+
+                <!-- Row 5 -->
+                <Button Content="בצע בדיקה לערוץ" Grid.Column="1" Grid.Row="4" Margin="10" Click="UpdateExtension" />
+                <Button Content="שנה שלוחות" Grid.Column="0" Grid.Row="4" Margin="10" />
+            </StackPanel>
     </Grid>
   </ScrollViewer>
 </Page>
