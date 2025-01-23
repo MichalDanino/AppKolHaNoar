@@ -50,5 +50,15 @@
   <ItemGroup>
     <ProjectReference Include="..\MediaProcessor\MediaProcessor.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Update="Presentation\Controller\UserControl1.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Presentation\Controller\CustomDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 
 </Project>
