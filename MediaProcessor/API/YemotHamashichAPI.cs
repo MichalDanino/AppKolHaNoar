@@ -51,7 +51,7 @@ public class YemotHamashichAPI
     public async Task<string> HandleRequest()
     {
 
-        var response = await httpClient.GetStringAsync(baseUrl + $"Login?username={AppConfig.apiDID}&password={AppConfig.password}");
+        var response = await httpClient.GetStringAsync(baseUrl + $"Login?username={AppConfig.UserNameYH}&password={AppConfig.passwordYH}");
         var jsonResponse = JObject.Parse(response);
 
         if (jsonResponse["responseStatus"].ToString() == "OK")

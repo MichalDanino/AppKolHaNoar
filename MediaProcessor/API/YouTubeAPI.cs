@@ -17,14 +17,12 @@ using YoutubeDLSharp.Options;
 namespace MediaProcessor.API;
 public class YouTubeAPI
 {
-    static string s_apiKey = "";
-    static string s_ApiProjectName = "";
+    
     static int MaxVidowToDownload;
     /* צריך להוסיפ כאן עדכון נתוני הווידיאו ב DB*/
     public YouTubeAPI()
     {
         MaxVidowToDownload = 5;
-        SetApi();
     }
 
     /// <summary>
@@ -40,8 +38,8 @@ public class YouTubeAPI
 
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
-                ApiKey = s_apiKey,
-                ApplicationName = s_ApiProjectName
+                ApiKey = AppConfig.apiKeyYT,
+                ApplicationName = AppConfig.apiProjectNameYT
             });
             // Playlist ID data request details
             var searchRequest = youtubeService.Search.List("snippet");
@@ -160,15 +158,7 @@ public class YouTubeAPI
 
     }
 
-    private void SetApi()
-    {
-        string resourceName = @"C:\Program Files\KolHaNoar\.env";
-        // Assembly assembly = Assembly.Load("DTO");
-        Env.Load(resourceName);
-        s_apiKey = Env.GetString("YOUTUBE_API_KEY");
-        s_ApiProjectName = Env.GetString("ApplicationName");
-
-
-    }
+  
+    
 }
 
