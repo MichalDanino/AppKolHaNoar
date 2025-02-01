@@ -108,7 +108,7 @@ public class YouTubeAPI
     }
     public static async Task<bool> DownloadShortsAsync(string channelId, SearchListResponse videoList)
     {
-
+        AppConfig.exceptions.Clear();
         if (videoList != null)
         {
             var youtubeDl = new YoutubeDL
@@ -129,7 +129,7 @@ public class YouTubeAPI
 
                     await durationVideo(videoUrl, youtubeDl.YoutubeDLPath);
                     // path folder output
-                    string outputPath = Path.Combine(@"C:\Downloads", $"{videoTitle}.%(ext)s");
+                    string outputPath = Path.Combine(AppConfig.rootURL +"Downloads", $"{videoTitle}.%(ext)s");
 
                     // Setting download options including disabling SSL
                     var options = new OptionSet
@@ -142,6 +142,14 @@ public class YouTubeAPI
 
                     // Audio download only
                     var result = await youtubeDl.RunWithOptions(videoUrl, options);
+                    if (!result.Success)
+                    { 
+                        AppConfig.exceptions.Add(new GenericException()
+                        {
+                            exceptionTitle = "נתקל בבעיה בהורדת הסרטון",
+                            exceptionMessage = "נתיב :" + videoUrl+ " " + result.ErrorOutput
+                        });
+                    }
                 }
             }
             return true;

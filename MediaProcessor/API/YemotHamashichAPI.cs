@@ -15,8 +15,6 @@ public class YemotHamashichAPI
     private const int chunkSize = 50000000;
     private const string remotePath = "ivr2:";
     private static string token = "";
-    public static string ApiDID = "";
-    public static string password = "";
     string folderPath = @"C:\Program Files\KolHaNoar\Downloads";
     private static HttpClient httpClient = new HttpClient();
 
@@ -30,9 +28,8 @@ public class YemotHamashichAPI
     {
         using (httpClient = new HttpClient())
         {
-            SetApi();
             token = await HandleRequest();
-            string[] videoFiles = Directory.GetFiles(Main.MainDirectoryPath + @"\Downloads");
+            string[] videoFiles = Directory.GetFiles(AppConfig.rootURL + @"Downloads");
 
             foreach (var videoFile in videoFiles)
             {
@@ -54,7 +51,7 @@ public class YemotHamashichAPI
     public async Task<string> HandleRequest()
     {
 
-        var response = await httpClient.GetStringAsync(baseUrl + $"Login?username={ApiDID}&password={password}");
+        var response = await httpClient.GetStringAsync(baseUrl + $"Login?username={AppConfig.apiDID}&password={AppConfig.password}");
         var jsonResponse = JObject.Parse(response);
 
         if (jsonResponse["responseStatus"].ToString() == "OK")
@@ -152,15 +149,6 @@ public class YemotHamashichAPI
 
     }
 
-    private void SetApi()
-    {
-        string resourceName = Main.MainDirectoryPath + @".env";
-        // Assembly assembly = Assembly.Load("DTO");
-        Env.Load(resourceName);
-        password = Env.GetString("PASSWORD");
-        ApiDID = Env.GetString("USERNAME");
-
-
-    }
+  
 }
 

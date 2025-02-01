@@ -14,22 +14,45 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml.Controls;
 using Uno.Extensions.Reactive;
+using MediaProcessor.API;
+//using Android.App;
+//using Android.App;
 
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace AppKolHaNoar.Presentation.Controller;
-public sealed partial class CustomDialog : ContentDialog
+public partial class CustomDialog : UserControl
 {
+    public CustomDialog()
+    {
+        InitializeComponent();
+    }
 
-   
+
+    /// <summary>
+    /// Shows the ContentDialog.
+    /// </summary>
+    public async Task<bool> ShowContentDialog(string message)
+    {
         
-        public CustomDialog(string message)
-        {
-           this.InitializeComponent();
-        contentDialog.Title = message;           
-                                       
-        }
- 
-  
+
+        // OkDialog.XamlRoot =  this..XamlRoot;
+        // var dialog = new CustomDialog();
+
+        //ContentDialogResult result = await this.ddd.ShowAsync();
+        //if (result == ContentDialogResult.Primary)
+        //{
+        //    return true;    
+        //}
+        //else if (result == ContentDialogResult.Secondary)
+        //{      
+        //    return false;
+
+    
+        return false;
+    }
+
+
+    
 }
