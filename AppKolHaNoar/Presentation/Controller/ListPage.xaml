@@ -1,0 +1,36 @@
+﻿<Page
+    x:Class="AppKolHaNoar.Presentation.Controller.ListPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AppKolHaNoar.Presentation">
+
+    <Page.Resources>
+        <DataTemplate x:Key="CheckBoxTemplate">
+            <StackPanel Orientation="Horizontal">
+                <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                <TextBlock Text="{Binding Text}" Margin="10,0,0,0"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="InputTemplate">
+            <TextBox PlaceholderText="{Binding Placeholder}" Text="{Binding Value, Mode=TwoWay}"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ButtonTemplate">
+            <Button Content="{Binding ButtonText}" Click="Button_Click"/>
+        </DataTemplate>
+
+        <local:CustomTemplateSelector x:Key="CustomSelector"
+            CheckBoxTemplate="{StaticResource CheckBoxTemplate}"
+            InputTemplate="{StaticResource InputTemplate}"
+            ButtonTemplate="{StaticResource ButtonTemplate}"/>
+    </Page.Resources>
+
+    <Grid Padding="20">
+        <StackPanel>
+            <ListView ItemsSource="{x:Bind Items}" ItemTemplateSelector="{StaticResource CustomSelector}"/>
+            <Button Content="Back" Click="Back_Click" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+            
+        </StackPanel>
+    </Grid>
+</Page>

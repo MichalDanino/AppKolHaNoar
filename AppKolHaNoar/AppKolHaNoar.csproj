@@ -48,6 +48,12 @@
     </UnoFeatures>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Presentation\Controller\Dialog.xaml.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Presentation\Controller\Dialog.xaml" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\MediaProcessor\MediaProcessor.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -59,6 +65,45 @@
     <Page Update="Presentation\Controller\CustomDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Presentation\Controller\.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Styles\PopupStyles_.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Styles\PopupStyles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Presentation\Controller\DialogMessage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Presentation\Controller\Dialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Presentation\Controller\ListPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Models\ListItemBase.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Remove="Presentation\Controller\Dialog.xaml" />
   </ItemGroup>
 
 </Project>

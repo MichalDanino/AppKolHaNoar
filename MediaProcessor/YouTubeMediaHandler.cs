@@ -49,15 +49,10 @@ namespace MediaProcessor
             return false;
         }
 
-        public bool UpdateNewVideoInExtension(string channelID)
+        public bool DownLoadVideoAsAudio(string channelID)
         {
-            bool statusDounload = YouTubeAPI.DownloadShortsAsync(channelID, listResponse).Result;
-            if (statusDounload) 
-            { 
-                
-            }
-
-            return false;
+            return YouTubeAPI.DownloadVideoAsAudio(channelID, listResponse).Result;
+            
         }
 
         public string GetChannelIdByName(string NameChannel)

@@ -11,4 +11,6 @@ public class GenericException
 
     public string exceptionMessage;
 
+    public string subExceptionMessage;
+
 }

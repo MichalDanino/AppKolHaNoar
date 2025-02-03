@@ -25,7 +25,7 @@ namespace MediaProcessor
             Env.Load(fileENV);
             passwordYH = Env.GetString("PASSWORD");
             UserNameYH = Env.GetString("USERNAME");
-            rootURL = Env.GetString("RootURL");
+            rootURL = Env.GetString("ROOTURL");
             apiKeyYT = Env.GetString("YOUTUBE_API_KEY");
             apiProjectNameYT = Env.GetString("ApplicationName");
 

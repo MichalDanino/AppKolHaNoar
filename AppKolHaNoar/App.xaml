@@ -19,11 +19,14 @@
             </ResourceDictionary>
           </utum:MaterialToolkitTheme.FontOverrideDictionary> -->
         </utum:MaterialToolkitTheme>
-      </ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/PopupStyles.xaml"/>
+
+            </ResourceDictionary.MergedDictionaries>
 
       <!-- Add resources here -->
-
-    </ResourceDictionary>
+          
+        </ResourceDictionary>
   </Application.Resources>
 
 </Application>
+

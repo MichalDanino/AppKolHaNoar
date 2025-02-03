@@ -1,0 +1,33 @@
+﻿<UserControl
+     x:Class="AppKolHaNoar.Presentation.Controller.Dialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AppKolHaNoar.Presentation.Controller"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300">
+
+    <Grid>
+        
+
+        <!-- First Dialog -->
+        <ContentDialog x:Name="OkDialog"
+                 Title=" "
+                 PrimaryButtonText="OK"
+                 SecondaryButtonText="Cancel"
+                 >
+            <TextBlock x:Name="OkDialogText" Text="This is the first dialog." VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </ContentDialog>
+
+        <!-- Second Dialog -->
+        <ContentDialog x:Name="ErrorDialog"
+                 Title="שגיאה"
+                 PrimaryButtonText="OK">
+            <StackPanel>
+            <TextBlock x:Name="ErrorText"  Text="שגיאה." VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="ErrorSubText"  Text="שגיאה." VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </ContentDialog>
+    </Grid>
+</UserControl>

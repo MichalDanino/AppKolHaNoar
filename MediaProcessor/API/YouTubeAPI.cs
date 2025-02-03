@@ -74,7 +74,7 @@ public class YouTubeAPI
 
 
         SearchListResponse playlistItemListResponse = await fetchChannelVideosByAPI(channelID);
-        DownloadShortsAsync(channelID, playlistItemListResponse);
+        await DownloadVideoAsAudio(channelID, playlistItemListResponse);
     }
 
     public static async Task durationVideo(string videoUrl, string youtubeDL)
@@ -104,7 +104,7 @@ public class YouTubeAPI
             }
         }
     }
-    public static async Task<bool> DownloadShortsAsync(string channelId, SearchListResponse videoList)
+    public static async Task<bool> DownloadVideoAsAudio(string channelId, SearchListResponse videoList)
     {
         AppConfig.exceptions.Clear();
         if (videoList != null)
@@ -145,7 +145,9 @@ public class YouTubeAPI
                         AppConfig.exceptions.Add(new GenericException()
                         {
                             exceptionTitle = "נתקל בבעיה בהורדת הסרטון",
-                            exceptionMessage = "נתיב :" + videoUrl+ " " + result.ErrorOutput
+                            exceptionMessage = "נתיב :" + videoUrl+ " " + result.ErrorOutput,
+                            subExceptionMessage =  "אנא וודא שהאינטרנט מחובר או שהסרטון נפתח במחשב"
+
                         });
                     }
                 }

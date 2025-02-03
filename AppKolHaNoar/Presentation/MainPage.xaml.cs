@@ -18,8 +18,9 @@ public sealed partial class MainPage : Page
 
     private async void UpdateExtension(object sender, RoutedEventArgs e)
     {
-       
-        await UIProcess.UpdateExtension(this.XamlRoot, " ");
+        this.Frame.Navigate(typeof(Controller.ListPage));
+
+      //  await UIProcess.UpdateExtension(this.XamlRoot, " ");
 
 
       //// bool NewVideo =  YoutubeAPI.CheckForNewVideos("gh");

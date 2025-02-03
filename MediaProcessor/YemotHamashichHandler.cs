@@ -13,8 +13,13 @@ namespace MediaProcessor
 {
     public class YemotHamashichHandler
     {
+        YemotHamashichHandler HandlerYH  = new YemotHamashichHandler();   
+        public bool UplaodFiles()
+        {
+            HandlerYH.UplaodFiles();
+            return true;
+        }
 
 
-        
     }
 }
