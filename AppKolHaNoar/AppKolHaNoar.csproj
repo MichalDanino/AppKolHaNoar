@@ -105,5 +105,10 @@
   <ItemGroup>
     <Page Remove="Presentation\Controller\Dialog.xaml" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Update="Presentation\SubPage\Channel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 
 </Project>

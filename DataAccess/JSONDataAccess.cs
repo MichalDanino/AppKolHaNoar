@@ -18,7 +18,7 @@ namespace DataAccess
     {
         private static readonly Dictionary<Type, PropertyInfo[]> _propertyCache = new Dictionary<Type, PropertyInfo[]>();
 
-        public override T AddData<T>(List<T> entityList) where T : class
+        public override bool InsetData<T>(List<T> entityList) where T : class
         {
             string filePath = GetFilePath<T>();
 
@@ -39,7 +39,7 @@ namespace DataAccess
             }
             // שמירת השינויים חזרה לקובץ
             // File.WriteAllText(filePath, jsonArray.ToString(Formatting.Indented));
-            return null;
+            return true;
         }
         public override bool UpdateData<T>(T entity, string updatePrimaryKey) where T : class
         {
@@ -138,5 +138,7 @@ namespace DataAccess
 
             return _propertyCache[type];
         }
+
+      
     }
 }

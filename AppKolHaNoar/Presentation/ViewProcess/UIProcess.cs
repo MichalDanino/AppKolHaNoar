@@ -10,35 +10,57 @@ using Microsoft.UI.Xaml.Controls;
 using Windows.UI.Popups;
 using AppKolHaNoar.Presentation.Controller;
 using System.Runtime.CompilerServices;
-
+using DTO;
+using MediaProcessor;
+using Microsoft.UI.Xaml;
 
 
 namespace AppKolHaNoar.Presentation.ViewProcess;
 
-public partial class UIProcess: ContentDialog
+public partial class UIProcess : ContentDialog
 {
-//#if WINDOWS
-    public static YouTubeMediaHandler s_MEDIAHANLDER = new YouTubeMediaHandler();
-    public static YemotHamashichAPI s_YEMOTHAMASHICH = new YemotHamashichAPI();
-    public static string s_MESSAGEDIALOG = "האם אתה מאשר?";
+    //#if WINDOWS
+    public static YouTubeMediaHandler youTubeMediaHandler = new YouTubeMediaHandler();
+    public static YemotHamashichAPI yemotHamashichAPI = new YemotHamashichAPI();
+    public static DBHandler DB = new DBHandler();    
+    public static string GlobalMessageDialog = "האם אתה מאשר?";
+    static XamlRoot xamlRoot = null;
+
+
+    /// <summary>
+    /// Checks if a new video has been uploaded to a specific YouTube channel.
+    /// If a new video is found and the user wants to update, the function downloads the video, 
+    /// extracts the audio, and uploads it to the phone extension system.
+    /// </summary>
+    /// <param name="parentXamlRoot">The ID of the YouTube channel to check </param>
+    /// <param name="channelID"></param>
+    /// <returns></returns>
     public static async Task UpdateExtension(XamlRoot parentXamlRoot, string channelID)
     {
-        s_YEMOTHAMASHICH.UplaodFiles();
-
-        bool status = false; 
-        status = s_MEDIAHANLDER.CheckForNewVideos(channelID);
+        xamlRoot = parentXamlRoot;
+        GenericException exception = null;
+        bool status = false;
+        status = youTubeMediaHandler.CheckForNewVideos(channelID);
 
         if (status)
         {
 
-            bool result = await ShowDialog(parentXamlRoot);
+            bool result = await ShowDialog();
             //if update the extension with new video
             if (result == true)
             {
-                status = s_MEDIAHANLDER.DownLoadVideoAsAudio(channelID);
-                if (status = true)
+                status = youTubeMediaHandler.DownLoadVideoAsAudio(channelID);
+
+                if (status == true)
                 {
-                    s_YEMOTHAMASHICH.UplaodFiles();
+                    await yemotHamashichAPI.UplaodFiles();
+
+                    if (MediaProcessor.AppConfig.listExceptions.Any())
+                    {
+                        await ShowExceptionWithList();
+
+                    } {
+                    }
                 }
             }
 
@@ -48,10 +70,10 @@ public partial class UIProcess: ContentDialog
 
     }
 
-    private static async Task<bool> ShowDialog(XamlRoot parentXamlRoot)
+    private static async Task<bool> ShowDialog()
     {
-        s_MESSAGEDIALOG = "ישנן עידכונים חדשים, האם לעלות אותם לשלוחה?";
-        ContentDialogResult result = await Dialogs.ShowAskDialog(parentXamlRoot,s_MESSAGEDIALOG);
+        GlobalMessageDialog = "ישנן עידכונים חדשים, האם לעלות אותם לשלוחה?";
+        ContentDialogResult result = await Dialogs.ShowAskDialog(xamlRoot, GlobalMessageDialog);
 
         // if update extension wuth new video
         if (result == ContentDialogResult.Primary)
@@ -60,6 +82,23 @@ public partial class UIProcess: ContentDialog
         }
         return false;
     }
+
+    public static async Task ShowException(GenericException exception)
+    {
+        await ExceptionPopUp.ShowErrorDialog(xamlRoot, exception);
+    }
+
+    public static async Task ShowExceptionWithList()
+    {
+        await ExceptionPopUp.ShowExceptionWithList(xamlRoot);
+    }
+
+
+
+    public void  InsertData<T>(List<T> entityList) where T : class 
+        {
+            DB.AddSet<T>(entityList, "");
+        }
     //public static async Task<ContentDialogResult> ShowDialogAsync(XamlRoot parentXamlRoot)
     //{
     //    ContentDialog dialog = new ContentDialog
@@ -72,8 +111,8 @@ public partial class UIProcess: ContentDialog
     //    };
 
     //    return  await dialog.ShowAsync();
-        
+
     //}
 
-//#endif
-    }
+    //#endif
+}

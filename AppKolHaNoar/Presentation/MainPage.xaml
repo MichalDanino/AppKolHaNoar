@@ -28,7 +28,7 @@
                 <Button Content="URL" Grid.Column="1" Grid.Row="0" Margin="10"  />
 
                 <!-- Row 2 -->
-                <Button Content="הוספת ערוץ" Grid.Column="1" Grid.Row="1" Margin="10" />
+                <Button Content="הוספת ערוץ" Grid.Column="1" Grid.Row="1" Margin="10" Click="AddChannel" />
                 <TextBox Name="URL" Text="{Binding Name, Mode=TwoWay}"
             PlaceholderText="Enter your name:" Grid.Column="1" Grid.Row="2" />
                 <!-- Row 3 -->

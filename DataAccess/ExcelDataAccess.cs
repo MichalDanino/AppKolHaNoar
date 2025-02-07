@@ -22,7 +22,7 @@ namespace DataAccess
             private static readonly Dictionary<string, int> _propertyIndex = new Dictionary<string, int>();
             private static readonly Dictionary<Type, PropertyInfo[]> _propertyCache = new Dictionary<Type, PropertyInfo[]>();
 
-            public override T AddData<T>(List<T> entityList) where T : class
+            public override bool InsetData<T>(List<T> entityList) where T : class
             {
                 // Get Path
                 string filePath = GetFilePath<T>();
@@ -78,7 +78,7 @@ namespace DataAccess
 
                     package.Save();
                 }
-                return null;
+                return true;
             }
             public override bool UpdateData<T>(T DataUpdate, String updatePrimaryKey) where T : class
             {
@@ -233,7 +233,9 @@ namespace DataAccess
                 return _propertyCache[type];
             }
 
-        }
+     
+    
 
-   
+   }
+
 }

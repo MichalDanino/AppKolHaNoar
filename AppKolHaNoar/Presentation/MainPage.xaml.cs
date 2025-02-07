@@ -15,12 +15,14 @@ public sealed partial class MainPage : Page
         YoutubeAPI = new YouTubeMediaHandler();  
         this.InitializeComponent();
     }
+    public static YemotHamashichAPI s_YEMOTHAMASHICH = new YemotHamashichAPI();
 
     private async void UpdateExtension(object sender, RoutedEventArgs e)
     {
-        this.Frame.Navigate(typeof(Controller.ListPage));
+        s_YEMOTHAMASHICH.UplaodFiles();
+    // this.Frame.Navigate(typeof(Controller.ListPage));
 
-      //  await UIProcess.UpdateExtension(this.XamlRoot, " ");
+   // await UIProcess.UpdateExtension(this.XamlRoot, " ");
 
 
       //// bool NewVideo =  YoutubeAPI.CheckForNewVideos("gh");
@@ -33,6 +35,12 @@ public sealed partial class MainPage : Page
       //     //להוסיף כאן עדכון שלוחה במקרה שהלקוח רוצה
 
         // }
+
+    }
+
+    private void AddChannel(object sender, RoutedEventArgs e)
+    {
+        this.Frame.Navigate(typeof(SubPage.Channel));
 
     }
 

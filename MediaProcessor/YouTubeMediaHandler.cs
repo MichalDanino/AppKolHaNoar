@@ -49,17 +49,32 @@ namespace MediaProcessor
             return false;
         }
 
+        /// <summary>
+        /// download video as audio 
+        /// </summary>
+        /// <param name="channelID"></param>
+        /// <returns>return true if successful ,otherwish false</returns>
         public bool DownLoadVideoAsAudio(string channelID)
         {
             return YouTubeAPI.DownloadVideoAsAudio(channelID, listResponse).Result;
             
         }
-
+        /// <summary>
+        /// Get channel ID according by name channel
+        /// </summary>
+        /// <param name="NameChannel">Name of channel</param>
+        /// <returns>channel ID</returns>
         public string GetChannelIdByName(string NameChannel)
         {
             //To Do
             return "";
         }
+
+        /// <summary>
+        /// Get last time that channel was update
+        /// </summary>
+        /// <param name="channelID">channel ID</param>
+        /// <returns>last update date</returns>
         private DateTime GetLastUpdateExtension(string channelID)
         {
             //To Do

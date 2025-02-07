@@ -1,0 +1,35 @@
+﻿<Page
+    x:Class="AppKolHaNoar.Presentation.SubPage.Channel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AppKolHaNoar.Presentation.SubPage"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <StackPanel Grid.Row="1"
+       HorizontalAlignment="Center"
+       VerticalAlignment="Center"
+       Spacing="16">
+            <!--<TextBox Text="{Binding Name, Mode=TwoWay}"
+       PlaceholderText="Enter your name:" />
+   <Button Content="Go to Second Page"
+       AutomationProperties.AutomationId="SecondPageButton"
+       Command="{Binding GoToSecond}" />-->
+            <Button Content="כמות" Grid.Column="0" Grid.Row="0" Margin="10" Click="SaveChannel" />
+
+            <TextBox Name="ChannelURL" Text="{Binding Name, Mode=TwoWay}"
+       PlaceholderText="Enter channel URL" Grid.Column="1" Grid.Row="2"/>
+            <TextBox Name="nameChannel" Text="{Binding Name, Mode=TwoWay}"
+PlaceholderText="hjhvb" Grid.Column="1" Grid.Row="2" />
+              <TextBox Name="shortggg" Text="{Binding Name, Mode=TwoWay}"
+PlaceholderText="נתיוב לסרטונים הקצרים" Grid.Column="1" Grid.Row="2" />
+                <TextBox Name="longkjj" Text="{Binding Name, Mode=TwoWay}"
+PlaceholderText="נתיוב לסרטונים הארוכים" Grid.Column="1" Grid.Row="2" />
+                <!-- Row 3 -->
+
+        </StackPanel>
+    </Grid>
+</Page>

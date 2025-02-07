@@ -11,15 +11,8 @@ public abstract class DBConnection
     public static string utilityString = "";
     public static ColumnValuePair columnValuePair = new ColumnValuePair();
 
-    //public List<T> GetDbSet<T>() where T : class
-    //{
-
-    //    using (RenovitionDBEntities s = new RenovitionDBEntities())
-    //    {
-
-    //        return s.GetDbSet<T>().ToList();
-    //    }
-    //}
+ 
+    
 
     /// <summary>
     /// Defines action status
@@ -39,7 +32,7 @@ public abstract class DBConnection
     /// <param name="entity">entity data for action</param>
     /// <param name="exAction">Type of action</param>
     /// <returns>true if successful otherwise, returns false</returns>
-    public T Execute<T>(List<T> entity, String updatePrimaryKey, ExecuteActions exAction) where T : class
+    public bool Execute<T>(List<T> entity, String updatePrimaryKey, ExecuteActions exAction) where T : class
     {
 
         bool isSecssed = false;
@@ -48,7 +41,7 @@ public abstract class DBConnection
             switch (exAction)
             {
                 case ExecuteActions.Insert:
-                    AddData(entity);
+                    InsetData(entity);
                     isSecssed = true;
                     break;
                 case ExecuteActions.Update:
@@ -64,11 +57,11 @@ public abstract class DBConnection
                     break;
             }
 
-            return null;
+            return true;
         }
         catch
         {
-            return null;
+            return false;
         }
 
     }
@@ -79,7 +72,7 @@ public abstract class DBConnection
     /// <typeparam name="T">The type of the object on which the action is performed. T must be a class type. </typeparam>
     /// <param name="entity">entity data for action</param>
     /// <returns>true if successful otherwise, returns false</returns>
-    public abstract T AddData<T>(List<T> entityList) where T : class;
+    public abstract bool InsetData<T>(List<T> entityList) where T : class;
 
     /// <summary>
     /// Updates data by unique identifier
@@ -99,6 +92,7 @@ public abstract class DBConnection
     public abstract bool RemoveData<T>(string RemovePrimaryKey) where T : class;
 
     protected abstract string GetFilePath<T>() where T : class;
+   
 
 
 }

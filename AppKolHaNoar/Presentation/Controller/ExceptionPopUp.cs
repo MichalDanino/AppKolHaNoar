@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Windows.UI;
 using Microsoft.UI;
 using DTO;
+//using AndroidX.ConstraintLayout.Core.Motion.Utils;
 
 
 namespace AppKolHaNoar.Presentation.Controller;
-public class ExceptionPopUp
+public static class ExceptionPopUp
 {
 //#if WINDOWS
     public static async Task<ContentDialogResult> ShowErrorDialog(XamlRoot xamlRoot, GenericException message)
@@ -86,6 +87,27 @@ public class ExceptionPopUp
 
 
         return await dialog.ShowAsync();
+    }
+    /// <summary>
+    ///  Merges all error messages into one string.
+    ///  Each error message is placed on a separate line, 
+    ///  making it easier to read in logs.
+    /// </summary>
+    /// <param name="xamlRoot">xamlroot of main page - need to show dialog</param>
+    /// <param name="ListExceptions">list of error to display</param>
+    /// <returns>None</returns>
+
+    public static async Task ShowExceptionWithList(XamlRoot xamlRoot)
+    {
+        GenericException exception = new GenericException();
+        /* 
+        * Merges all error messages into one string.
+        * Each error message is placed on a separate line, 
+        * making it easier to read in logs.
+        */
+        exception.subExceptionMessage = string.Join(Environment.NewLine, MediaProcessor.AppConfig.listExceptions.Select(item => item.exceptionMessage));
+        await ShowErrorDialog(xamlRoot, exception);
+        MediaProcessor.AppConfig.listExceptions.Clear();    
     }
 //#endif
 }

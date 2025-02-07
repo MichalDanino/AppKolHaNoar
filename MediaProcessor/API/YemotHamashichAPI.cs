@@ -5,7 +5,9 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetEnv;
+using DTO;
 using Newtonsoft.Json.Linq;
+using static DTO.Enums;
 
 namespace MediaProcessor.API;
 public class YemotHamashichAPI
@@ -17,30 +19,52 @@ public class YemotHamashichAPI
     private static string token = "";
     string folderPath = @"C:\Program Files\KolHaNoar\Downloads";
     private static HttpClient httpClient = new HttpClient();
-
+     GenericException exceptions = new  GenericException();
+    public eERROR status = eERROR.success;
     /// <summary>
     /// The function is designed to define all the necessary components for uploading a file to the system,
     /// including creating an HTTP POST request with content in multipart/form-data format, 
     /// adding required metadata and fields, handling the file as a data stream, 
     /// and sending the request to the server while processing the received response.
     /// </summary>
-    public async void UplaodFiles()
+    public async Task  UplaodFiles()
     {
+
         using (httpClient = new HttpClient())
         {
-            token = await HandleRequest();
-            string[] videoFiles = Directory.GetFiles(AppConfig.rootURL + @"Downloads");
-
-            foreach (var videoFile in videoFiles)
+            try
             {
-                int chunkSize = 50000000; // 1MB
-                await foreach (var chunk in GetChunks(videoFile, chunkSize))
+                //get token
+                token = await HandleRequest();
+                //patch to upload files
+                string[] videoFiles = Directory.GetFiles(AppConfig.rootURL + @"Downloads");
+                List<string> uploadRespone = new List<string>();
+                
+                foreach (var videoFile in videoFiles)
                 {
+                    int chunkSize = 50000000; // 1MB
+                    await foreach (var chunk in GetChunks(videoFile, chunkSize))
+                    {
 
-                    var formData = CreateFormData(chunk, videoFile);
-                    string response = await Uploadfile(baseUrl + "/ym/api/UploadFile", formData);
+                        var formData = CreateFormData(chunk, videoFile);
+                        string response = await Uploadfile(formData);
+                        status = await Exceptions.checkUploadFile(response);
+                        if (status == eERROR.acsseccError)
+                        {
+                            break;
+                        }
+                    }
+                    // if there is problem with the internet connection.stop all uploading
+                    if (status == eERROR.NetworkError)
+                    {
+                        break;
+                    }
+
+                    Directory.Delete(AppConfig.rootURL + @"Downloads\"+ videoFile, true);
                 }
             }
+            catch (Exception ex) { }
+            return;
         }
     }
 
@@ -133,10 +157,16 @@ public class YemotHamashichAPI
 
         return formData;
     }
-    static async Task<string> Uploadfile(string url, HttpContent payload)
-    {
 
-        var response = await httpClient.PostAsync(url, payload);
+    /// <summary>
+    /// upload file to YemotHamshich
+    /// </summary>
+    /// <param name="payload">FromDate with all parmeter to upload file</param>
+    /// <returns>The server status of upload file</returns>
+    static async Task<string> Uploadfile(HttpContent payload)
+    {
+        string requestURL = baseUrl + "/ym/api/UploadFile";
+        var response = await httpClient.PostAsync(requestURL, payload);
         return await response.Content.ReadAsStringAsync();
 
     }

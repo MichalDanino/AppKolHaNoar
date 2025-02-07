@@ -8,12 +8,15 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />
     <PackageVersion Include="EPPlus" Version="7.5.3" />
     <PackageVersion Include="Google.Apis" Version="1.68.0" />
     <PackageVersion Include="Google.Apis.Auth" Version="1.68.0" />
     <PackageVersion Include="Google.Apis.YouTube.v3" Version="1.68.0.3653" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="System.Data.SqlClient" Version="4.9.0" />
+    <PackageVersion Include="System.Data.SQLite" Version="1.0.119" />
     <PackageVersion Include="YoutubeDLSharp" Version="1.1.1" />
   </ItemGroup>
 </Project>

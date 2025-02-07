@@ -2,7 +2,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using DataAccess;
 using DotNetEnv;
 using DTO;
 using Google;
@@ -10,6 +12,7 @@ using Google.Apis.Http;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json.Linq;
 using YoutubeDLSharp;
 using YoutubeDLSharp.Options;
@@ -19,6 +22,7 @@ public class YouTubeAPI
 {
     
     static int MaxVidowToDownload;
+    public static DBHandler bHandler;
     /* צריך להוסיפ כאן עדכון נתוני הווידיאו ב DB*/
     public YouTubeAPI()
     {
@@ -99,8 +103,7 @@ public class YouTubeAPI
                 // get video duration as second
                 int duration = videoData["duration"]?.Value<int>() ?? 0;
 
-                int f = 6;
-                //להכניס כאן עדכון של ה DB
+              
             }
         }
     }
@@ -160,7 +163,34 @@ public class YouTubeAPI
 
     }
 
-  
-    
+    /// <summary>
+    /// update the following parameter of video: channelID, Duration and call Extension to upload this file
+    /// </summary>
+    /// <param name="videoUrl">video url inorder to get ID channel</param>
+    /// <param name="duration">video duration </param>
+    public void InsertVideoDetails(string videoUrl, int duration)
+    {
+        string channelId = videoUrl.Split("=")[1].Replace("\"", "");
+        SQLiteAccess sQLiteAccess = new SQLiteAccess(AppConfig.rootURL);
+
+        //Retrieve the channel entity along with its linked call extension information
+        List<ChannelExtension> channelExtension = sQLiteAccess.GetDBSet<ChannelExtension>($"WHERE UserID ={channelId}");
+       
+        //update DB
+        VideoDetails videoDetails = new VideoDetails()
+        {
+            VideoDetails_VideoID = channelId,
+            VideoDetails_Duration = duration,
+            VideoDetails_ExtensionMapping = channelExtension[0].ChannelExtensionLong
+        };
+        // if video lass then 10 minets
+        if(duration<=10)
+        {;
+            videoDetails.VideoDetails_ExtensionMapping = channelExtension[0].ChannelExtensionShort;
+         }
+    }
+
+
+
 }
 
