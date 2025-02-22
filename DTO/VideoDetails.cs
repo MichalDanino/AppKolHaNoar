@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace DTO;
 public class VideoDetails
 {
-   public string VideoDetails_VideoID;
+   public string VideoDetails_ID;
 
    public int VideoDetails_Duration;
 

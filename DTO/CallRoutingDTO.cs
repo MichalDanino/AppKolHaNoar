@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +8,11 @@ namespace DTO
 {
     public class CallRoutingDTO
     {
-        public int callRoutingID { get; set; }
-        public string CallRoutingNameChannel { get; set; }
-        public string CallRoutingCategory { get; set; }
-        public string CallRoutingSubcategory { get; set; }
-        public string callRouting { get; set; }
+        public int callRouting_ID { get; set; }
+        public string CallRouting_NameChannel { get; set; }
+        public string CallRouting_Category { get; set; }
+        public string CallRouting_Subcategory { get; set; }
+        public string callRouting_Navigat { get; set; }
 
     }
 }

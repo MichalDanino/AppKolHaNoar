@@ -49,21 +49,30 @@ public class SQLiteAccess :DBConnection
             string tableName = typeClass.Name;
             connection.Open();
             // Check if the table exists
-            var tableExistsQuery = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{tableName}'";
-            var tableExists = connection.Query<string>(tableExistsQuery).Any();
+            string tableExistsQuery = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{tableName}'";
+            bool tableExists = connection.Query<string>(tableExistsQuery).Any();
 
             if (!tableExists)
             {
                 // Create table if it doesn't exist
-              
-                var columns = string.Join(",", typeClass.GetProperties().Select(p => $"{p.Name} TEXT"));
-                var createTableQuery = $"CREATE TABLE IF NOT EXISTS {tableName} ({columns})";
+
+                string columns = string.Join(",", typeClass.GetProperties().Select(p =>
+                {
+                    if (p.Name.Contains("_ID", StringComparison.OrdinalIgnoreCase) && p.PropertyType == typeof(int))
+                        return $"{p.Name} INTEGER PRIMARY KEY AUTOINCREMENT";
+                    else
+                        return $"{p.Name} TEXT";
+                }));
+
+                string createTableQuery = $"CREATE TABLE IF NOT EXISTS {tableName} ({columns})";
                 connection.Execute(createTableQuery);
             }
-            var query = $"INSERT INTO {tableName} ({string.Join(",", typeClass.GetProperties().Select(p => p.Name))}) " +
-                        $"VALUES ({string.Join(",", typeClass.GetProperties().Select(p => "@" + p.Name))})";
+            string query = $"INSERT INTO {tableName} ({string.Join(",", typeClass.GetProperties().Where(p => !p.Name.Equals("ID", StringComparison.OrdinalIgnoreCase)).Select(p => p.Name))}) " +
+                   $"VALUES ({string.Join(",", typeClass.GetProperties().Where(p => !p.Name.Equals("ID", StringComparison.OrdinalIgnoreCase)).Select(p => "@" + p.Name))})";
 
-             connection.Execute(query, entity);
+            connection.Execute(query, entity);
+
+            connection.Execute(query, entity);
         }
         return true;
     }

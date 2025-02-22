@@ -42,9 +42,9 @@ public sealed partial class Channel : Page
            new ChannelExtension()
            {
                 ChannelExtension_ID = ChannelURL.Text,
-                ChannelExtensionLong = longVideo.Text,
-                ChannelExtensionShort = shortVideo.Text,
-                ChannelExtensionCampaign = Campaign.Text
+                ChannelExtension_Long = longVideo.Text,
+                ChannelExtension_Short = shortVideo.Text,
+                ChannelExtension_Campaign = Campaign.Text
            }
        }; 
        

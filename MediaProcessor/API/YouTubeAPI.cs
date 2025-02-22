@@ -179,14 +179,14 @@ public class YouTubeAPI
         //update DB
         VideoDetails videoDetails = new VideoDetails()
         {
-            VideoDetails_VideoID = channelId,
+            VideoDetails_ID = channelId,
             VideoDetails_Duration = duration,
-            VideoDetails_ExtensionMapping = channelExtension[0].ChannelExtensionLong
+            VideoDetails_ExtensionMapping = channelExtension[0].ChannelExtension_Long
         };
         // if video lass then 10 minets
         if(duration<=10)
         {;
-            videoDetails.VideoDetails_ExtensionMapping = channelExtension[0].ChannelExtensionShort;
+            videoDetails.VideoDetails_ExtensionMapping = channelExtension[0].ChannelExtension_Short;
          }
     }
 
