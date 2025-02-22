@@ -19,8 +19,8 @@ public class YemotHamashichAPI
     private static string token = "";
     string folderPath = @"C:\Program Files\KolHaNoar\Downloads";
     private static HttpClient httpClient = new HttpClient();
-     GenericException exceptions = new  GenericException();
-    public eERROR status = eERROR.success;
+     GenericMessage exceptions = new  GenericMessage();
+    public eERROR status = eERROR.SUCCESS;
     /// <summary>
     /// The function is designed to define all the necessary components for uploading a file to the system,
     /// including creating an HTTP POST request with content in multipart/form-data format, 
@@ -49,13 +49,13 @@ public class YemotHamashichAPI
                         var formData = CreateFormData(chunk, videoFile);
                         string response = await Uploadfile(formData);
                         status = await Exceptions.checkUploadFile(response);
-                        if (status == eERROR.acsseccError)
+                        if (status == eERROR.ACCESERROR)
                         {
                             break;
                         }
                     }
                     // if there is problem with the internet connection.stop all uploading
-                    if (status == eERROR.NetworkError)
+                    if (status == eERROR.NETWORKERROR)
                     {
                         break;
                     }

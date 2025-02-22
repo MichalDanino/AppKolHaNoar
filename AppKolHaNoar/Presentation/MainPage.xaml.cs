@@ -1,28 +1,57 @@
 
 
 using AppKolHaNoar.Presentation.ViewProcess;
+using DTO;
 using MediaProcessor;
 using MediaProcessor.API;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
+//using Uno.UI.Controls;
+using static DTO.Enums;
+
+
 namespace AppKolHaNoar.Presentation;
+
 
 
 public sealed partial class MainPage : Page
 {
     public YouTubeMediaHandler YoutubeAPI;
+    public ActionService process;
+    public List<ChannelExtension> channelExtensions;
+    public ViewModels.MainViewModels ViewModel { get; } = new ViewModels.MainViewModels();
+
     public MainPage()
     {
-        YoutubeAPI = new YouTubeMediaHandler();  
+        process = new ActionService();
+      
+        
         this.InitializeComponent();
+        process.GetMainPageXamlRoot(this.XamlRoot);   
+        comboBoxChannel.DataContext = ViewModel;
+        BBb.DataContext = ViewModel;
+        // FillComboBox(); 
+
+
+        YoutubeAPI = new YouTubeMediaHandler();  
+
     }
     public static YemotHamashichAPI s_YEMOTHAMASHICH = new YemotHamashichAPI();
 
     private async void UpdateExtension(object sender, RoutedEventArgs e)
     {
-        s_YEMOTHAMASHICH.UplaodFiles();
-    // this.Frame.Navigate(typeof(Controller.ListPage));
+        //Get channel id from ComboBox
+        ChannelExtension channelToCheck = comboBoxChannel.SelectedItem as ChannelExtension;
+        if (channelToCheck != null)
+        {
+            await process.UpdateExtension( channelToCheck.ChannelExtension_ID);
+        }
+        else 
+        {
+            GenericMessage message = new GenericMessage() { MessageContent = "לא נבחר ערוץ לבצע עליו בדיקה ועדכון השלוחה" };
+            await process.ShowMessageByDialog(message, eDialogType.OK);
+        }
 
-   // await UIProcess.UpdateExtension(this.XamlRoot, " ");
 
 
       //// bool NewVideo =  YoutubeAPI.CheckForNewVideos("gh");
@@ -44,7 +73,9 @@ public sealed partial class MainPage : Page
 
     }
 
-#if WINDOWS
+
+
+
     private async Task ShowCustomDialog()
     {
         ContentDialog dialog = new ContentDialog
@@ -52,10 +83,43 @@ public sealed partial class MainPage : Page
             Title = "Custom Dialog",
             Content = "This is a simple dialog example in Uno Platform.",
             CloseButtonText = "Close",
-            XamlRoot = this.Content.XamlRoot // חשוב עבור Uno Platform
+            XamlRoot = this.XamlRoot // חשוב עבור Uno Platform
         };
 
         await dialog.ShowAsync();
     }
-#endif
+
+    internal void FillComboBox()
+    {
+       comboBoxChannel.ItemsSource = ViewModel.Channels;
+        comboBoxChannel.DisplayMemberPath = "ChannelExtension_Name";
+     comboBoxCampaign.ItemsSource = ViewModel.Campaigns;  
+        comboBoxCampaign.DisplayMemberPath = "Campaign_Number";
+    }
+    private void GetList(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void RunCampaign(object sender, RoutedEventArgs e)
+    {
+       // var r = ViewModel.
+        Campaign channelToCheck = comboBoxCampaign.SelectedItem as Campaign;
+        process.RunCampaign(channelToCheck,this.XamlRoot);
+    }
+
+    //    channelExtensions =new List<ChannelExtension>() {
+    //            new ChannelExtension()
+    //    {
+    //        ChannelExtensionCampaign = "ff",
+    //                ChannelExtension_ID = "2342",
+    //                ChannelExtension_Name = "הרב יגאל כהן"
+    //            },
+    //            new ChannelExtension()
+    //    {
+    //        ChannelExtensionCampaign = "dfvc",
+    //                ChannelExtension_ID = "423",
+    //                ChannelExtension_Name = "הרב znhr כהן"
+    //            }
+    //};
 }

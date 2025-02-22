@@ -10,10 +10,10 @@ using DTO;
 
 
 namespace AppKolHaNoar.Presentation.Controller;
-public static class ExceptionPopUp
+public static class ExceptionMessage
 {
 //#if WINDOWS
-    public static async Task<ContentDialogResult> ShowErrorDialog(XamlRoot xamlRoot, GenericException message)
+    public static async Task<ContentDialogResult> ShowErrorDialog(XamlRoot xamlRoot, GenericMessage message)
     {
 
         var stackPanel = new StackPanel { Spacing = 10 };
@@ -99,13 +99,13 @@ public static class ExceptionPopUp
 
     public static async Task ShowExceptionWithList(XamlRoot xamlRoot)
     {
-        GenericException exception = new GenericException();
+        GenericMessage exception = new GenericMessage();
         /* 
         * Merges all error messages into one string.
         * Each error message is placed on a separate line, 
         * making it easier to read in logs.
         */
-        exception.subExceptionMessage = string.Join(Environment.NewLine, MediaProcessor.AppConfig.listExceptions.Select(item => item.exceptionMessage));
+        exception.subMessageMessage = string.Join(Environment.NewLine, MediaProcessor.AppConfig.listExceptions.Select(item => item.MessageContent));
         await ShowErrorDialog(xamlRoot, exception);
         MediaProcessor.AppConfig.listExceptions.Clear();    
     }

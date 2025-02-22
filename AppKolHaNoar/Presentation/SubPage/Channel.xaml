@@ -8,28 +8,59 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid>
-        <StackPanel Grid.Row="1"
-       HorizontalAlignment="Center"
-       VerticalAlignment="Center"
-       Spacing="16">
-            <!--<TextBox Text="{Binding Name, Mode=TwoWay}"
-       PlaceholderText="Enter your name:" />
-   <Button Content="Go to Second Page"
-       AutomationProperties.AutomationId="SecondPageButton"
-       Command="{Binding GoToSecond}" />-->
-            <Button Content="כמות" Grid.Column="0" Grid.Row="0" Margin="10" Click="SaveChannel" />
+    <StackPanel>
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <TextBox Name="ChannelURL" Text="{Binding Name, Mode=TwoWay}"
-       PlaceholderText="Enter channel URL" Grid.Column="1" Grid.Row="2"/>
-            <TextBox Name="nameChannel" Text="{Binding Name, Mode=TwoWay}"
-PlaceholderText="hjhvb" Grid.Column="1" Grid.Row="2" />
-              <TextBox Name="shortggg" Text="{Binding Name, Mode=TwoWay}"
-PlaceholderText="נתיוב לסרטונים הקצרים" Grid.Column="1" Grid.Row="2" />
-                <TextBox Name="longkjj" Text="{Binding Name, Mode=TwoWay}"
-PlaceholderText="נתיוב לסרטונים הארוכים" Grid.Column="1" Grid.Row="2" />
-                <!-- Row 3 -->
+            <TextBlock Text="נתיב ערוץ:" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="5"/>
+            <Grid Grid.Row="0" Grid.Column="0">
+                <TextBox Name="TextBox1" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,5,0" Width="250" Height="40"/>
+                <TextBox Name="ChannelURL" Text="{Binding Name, Mode=TwoWay}" PlaceholderText="Enter channel URL" Width="250" Height="40"/>
+            </Grid>
 
-        </StackPanel>
-    </Grid>
+            <TextBlock Text="שם הערוץ" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="5"/>
+            <Grid Grid.Row="1" Grid.Column="0">
+                <TextBox Name="nameChannel" Text="{Binding Name, Mode=TwoWay}" PlaceholderText="הרב זמיר כהן" Width="250" Height="40"/>
+            </Grid>
+
+            <TextBlock Text="שלוחת הסרטונים הקצרים" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="5"/>
+            <Grid Grid.Row="2" Grid.Column="0">
+                <TextBox Name="shortVideo" Text="{Binding Name, Mode=TwoWay}" PlaceholderText="content לדוג' " Width="250" Height="40"/>
+            </Grid>
+
+            <TextBlock Text="שלוחת הסרטונים הארוכים" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="5"/>
+            <Grid Grid.Row="3" Grid.Column="0">
+                <TextBox Name="longVideo" Text="{Binding Name, Mode=TwoWay}" PlaceholderText="לדוג' :4/1/1" Width="250" Height="40"/>
+            </Grid>
+            
+            <!-- CheckBox to show additional TextBox -->
+            <!-- CheckBox to show additional TextBox -->
+            <Grid Grid.Row="4" Grid.Column="0">
+                <CheckBox x:Name="CheckBox" Content="הפעלת קמפיין בעדכון השלוחה" VerticalAlignment="Center" Margin="5"/>
+            </Grid>
+
+            <!-- Additional TextBox (conditionally visible based on CheckBox state) -->
+            <Grid Grid.Row="5" Grid.Column="0">
+                <TextBox x:Name="Campaign" PlaceholderText="Additional information" Width="250" Height="40" 
+                         Visibility="{Binding IsChecked, ElementName=CheckBox, Converter={x:Null}}"/>
+            </Grid>
+
+            <Button Content="הוסף" Grid.Column="0" Grid.Row="6" Margin="10" Click="SaveChannel" />
+
+        </Grid>
+    </StackPanel>
 </Page>

@@ -11,12 +11,12 @@ using static Google.Apis.Requests.BatchRequest;
 namespace MediaProcessor;
 public  class Exceptions
 {
-    static GenericException _exception;
+    static GenericMessage _exception;
     static eERROR _error;
     public Exceptions()
     {
-        _exception = new GenericException();
-        _error= eERROR.success;
+        _exception = new GenericMessage();
+        _error= eERROR.SUCCESS;
     }
 
     public static async Task<eERROR> checkUploadFile(string statusResponse)
@@ -27,18 +27,18 @@ public  class Exceptions
 
         if (!uploadRespone[0].Contains("OK"))
         {
-            _error = eERROR.NetworkError;
-            _exception.exceptionTitle = _error.ToString();
-            _exception.exceptionMessage = "שגיאה בהתחברות לשרת. בדוק חיבור רשת ";
+            _error = eERROR.NETWORKERROR;
+            _exception.MessageTitle = _error.ToString();
+            _exception.MessageContent = "שגיאה בהתחברות לשרת. בדוק חיבור רשת ";
             AppConfig.listExceptions.Add(_exception);
 
         }
         if (uploadRespone[1].Contains("false"))
         {
-            _exception.exceptionMessage = "הבקשה נשלחה אך נכשלה. נסה שוב או בדוק את הקובץ";
-            _exception.exceptionTitle = _error.ToString();
+            _exception.MessageContent = "הבקשה נשלחה אך נכשלה. נסה שוב או בדוק את הקובץ";
+            _exception.MessageTitle = _error.ToString();
             AppConfig.listExceptions.Add(_exception);
-            _error = eERROR.acsseccError;
+            _error = eERROR.ACCESERROR;
 
         }
         return _error;

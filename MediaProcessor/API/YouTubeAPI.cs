@@ -145,11 +145,11 @@ public class YouTubeAPI
                     var result = await youtubeDl.RunWithOptions(videoUrl, options);
                     if (!result.Success)
                     { 
-                        AppConfig.exceptions.Add(new GenericException()
+                        AppConfig.exceptions.Add(new GenericMessage()
                         {
-                            exceptionTitle = "נתקל בבעיה בהורדת הסרטון",
-                            exceptionMessage = "נתיב :" + videoUrl+ " " + result.ErrorOutput,
-                            subExceptionMessage =  "אנא וודא שהאינטרנט מחובר או שהסרטון נפתח במחשב"
+                            MessageTitle = "נתקל בבעיה בהורדת הסרטון",
+                            MessageContent = "נתיב :" + videoUrl+ " " + result.ErrorOutput,
+                            subMessageMessage =  "אנא וודא שהאינטרנט מחובר או שהסרטון נפתח במחשב"
 
                         });
                     }
@@ -171,7 +171,7 @@ public class YouTubeAPI
     public void InsertVideoDetails(string videoUrl, int duration)
     {
         string channelId = videoUrl.Split("=")[1].Replace("\"", "");
-        SQLiteAccess sQLiteAccess = new SQLiteAccess(AppConfig.rootURL);
+        SQLiteAccess sQLiteAccess = new SQLiteAccess(AppConfig.NameDBFile);
 
         //Retrieve the channel entity along with its linked call extension information
         List<ChannelExtension> channelExtension = sQLiteAccess.GetDBSet<ChannelExtension>($"WHERE UserID ={channelId}");

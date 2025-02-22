@@ -13,6 +13,10 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Services.Store;
+using AppKolHaNoar.Presentation.ViewProcess;
+using static DTO.Enums;
+
 
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
@@ -23,14 +27,38 @@ namespace AppKolHaNoar.Presentation.SubPage;
 /// </summary>
 public sealed partial class Channel : Page
 {
+    static ActionService UI;
     public Channel()
     {
         this.InitializeComponent();
+
     }
 
-    private void SaveChannel(object sender, RoutedEventArgs e)
+    private async void SaveChannel(object sender, RoutedEventArgs e)
     {
-        List  <ChannelExtension> channelExtension = new List<ChannelExtension>(); 
+        UI = new ActionService();
+       List< ChannelExtension> channelExtension = new List<ChannelExtension>()
+       {
+           new ChannelExtension()
+           {
+                ChannelExtension_ID = ChannelURL.Text,
+                ChannelExtensionLong = longVideo.Text,
+                ChannelExtensionShort = shortVideo.Text,
+                ChannelExtensionCampaign = Campaign.Text
+           }
+       }; 
+       
+
+       bool isAdd =  UI.InsertData< ChannelExtension>(channelExtension);
+        if (isAdd)
+        {
+            GenericMessage message = new GenericMessage() { MessageContent = " המידע נשמר בהצלחה" };
+           await UI.ShowMessageByDialog(message, eDialogType.OK);
+        }
+        this.Frame.Navigate(typeof(MainPage));
 
     }
+
+
+
 }

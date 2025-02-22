@@ -36,33 +36,37 @@ public abstract class DBConnection
     {
 
         bool isSecssed = false;
-        try
+        if (entity.Any())
         {
-            switch (exAction)
+            try
             {
-                case ExecuteActions.Insert:
-                    InsetData(entity);
-                    isSecssed = true;
-                    break;
-                case ExecuteActions.Update:
-                    UpdateData(entity[0], updatePrimaryKey);
+                switch (exAction)
+                {
+                    case ExecuteActions.Insert:
+                        InsetData(entity);
+                        isSecssed = true;
+                        break;
+                    case ExecuteActions.Update:
+                        UpdateData(entity[0], updatePrimaryKey);
 
-                    isSecssed = true;
-                    break;
-                case ExecuteActions.Delete:
-                    RemoveData<T>(updatePrimaryKey);
-                    isSecssed = true;
-                    break;
-                default:
-                    break;
+                        isSecssed = true;
+                        break;
+                    case ExecuteActions.Delete:
+                        RemoveData<T>(updatePrimaryKey);
+                        isSecssed = true;
+                        break;
+                    default:
+                        break;
+                }
+
+                return true;
             }
-
-            return true;
+            catch
+            {
+                return false;
+            }
         }
-        catch
-        {
-            return false;
-        }
+        return false;
 
     }
 

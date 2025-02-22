@@ -13,19 +13,19 @@ using System.Runtime.CompilerServices;
 using DTO;
 using MediaProcessor;
 using Microsoft.UI.Xaml;
+using static DTO.Enums;
 
 
 namespace AppKolHaNoar.Presentation.ViewProcess;
 
-public partial class UIProcess : ContentDialog
+public partial class ActionService : ContentDialog
 {
     //#if WINDOWS
     public static YouTubeMediaHandler youTubeMediaHandler = new YouTubeMediaHandler();
     public static YemotHamashichAPI yemotHamashichAPI = new YemotHamashichAPI();
     public static DBHandler DB = new DBHandler();    
     public static string GlobalMessageDialog = "האם אתה מאשר?";
-    static XamlRoot xamlRoot = null;
-
+    public static XamlRoot MainPageXamlRoot;
 
     /// <summary>
     /// Checks if a new video has been uploaded to a specific YouTube channel.
@@ -35,20 +35,14 @@ public partial class UIProcess : ContentDialog
     /// <param name="parentXamlRoot">The ID of the YouTube channel to check </param>
     /// <param name="channelID"></param>
     /// <returns></returns>
-    public static async Task UpdateExtension(XamlRoot parentXamlRoot, string channelID)
+    public  async Task UpdateExtension( string channelID)
     {
-        xamlRoot = parentXamlRoot;
-        GenericException exception = null;
+        GenericMessage messgeToUser = null;
         bool status = false;
         status = youTubeMediaHandler.CheckForNewVideos(channelID);
 
         if (status)
         {
-
-            bool result = await ShowDialog();
-            //if update the extension with new video
-            if (result == true)
-            {
                 status = youTubeMediaHandler.DownLoadVideoAsAudio(channelID);
 
                 if (status == true)
@@ -59,60 +53,67 @@ public partial class UIProcess : ContentDialog
                     {
                         await ShowExceptionWithList();
 
-                    } {
-                    }
+                    } 
                 }
+            }
+        else
+            {
+            messgeToUser = new GenericMessage() { MessageContent = "אין סרטונים חדשים בערוץ" };
+            ShowMessageByDialog(messgeToUser, eDialogType.OK);
             }
 
 
-        }
+        
 
 
     }
 
-    private static async Task<bool> ShowDialog()
+      public async Task<ContentDialogResult> ShowMessageByDialog( GenericMessage exception, eDialogType dialogType)
     {
-        GlobalMessageDialog = "ישנן עידכונים חדשים, האם לעלות אותם לשלוחה?";
-        ContentDialogResult result = await Dialogs.ShowAskDialog(xamlRoot, GlobalMessageDialog);
-
-        // if update extension wuth new video
-        if (result == ContentDialogResult.Primary)
-        {
-            return true;
-        }
-        return false;
+       return await Dialogs.MainShowDialog(MainPageXamlRoot, exception,dialogType);
     }
 
-    public static async Task ShowException(GenericException exception)
+
+    public static async Task ShowException(GenericMessage exception)
     {
-        await ExceptionPopUp.ShowErrorDialog(xamlRoot, exception);
+        await ExceptionMessage.ShowErrorDialog(MainPageXamlRoot, exception);
     }
 
     public static async Task ShowExceptionWithList()
     {
-        await ExceptionPopUp.ShowExceptionWithList(xamlRoot);
+        await ExceptionMessage.ShowExceptionWithList(MainPageXamlRoot);
     }
 
-
-
-    public void  InsertData<T>(List<T> entityList) where T : class 
+   public bool RunCampaign(Campaign campaign, XamlRoot xamlRoot)
+    {
+         
+        if (campaign != null)
         {
-            DB.AddSet<T>(entityList, "");
+            yemotHamashichAPI.RunCampaign("1418810");
         }
-    //public static async Task<ContentDialogResult> ShowDialogAsync(XamlRoot parentXamlRoot)
-    //{
-    //    ContentDialog dialog = new ContentDialog
-    //    {
-    //        Title = "Custom Dialog",
-    //        Content = s_MESSAGEDIALOG,
-    //        PrimaryButtonText = "אישור",
-    //        SecondaryButtonText = "ביטול",
-    //        XamlRoot = parentXamlRoot // חשוב עבור Uno Platform
-    //    };
+        else
+        {
+            GenericMessage message = new GenericMessage() { MessageTitle = "הפעלת קמפיין", MessageContent = "לא נבחר קמפיין להרצה" };
+            Dialogs.MainShowDialog( xamlRoot,message,eDialogType.OK);
+            return false;
+        }
+        return true;    
+    }
 
-    //    return  await dialog.ShowAsync();
+    public bool InsertData<T>(List<T> entityList) where T : class 
+        {
+           return DB.AddSet<T>(entityList, "jkj");
+        }
 
-    //}
+    public List<T> GetDBSet<T>(object parameters = null)
+    {
+       return DB.GetDBSet<T>(parameters);
+    }
+  
+    public void GetMainPageXamlRoot(XamlRoot xamlRoot)
+    {
+        MainPageXamlRoot = xamlRoot;
+    }
 
     //#endif
 }

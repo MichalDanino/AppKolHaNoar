@@ -11,8 +11,15 @@ public static class Enums
     public enum eERROR
     {
         //לבדוק תקינות של של האינם
-        success,               //succesfully
-        NetworkError,           //error 500
-        acsseccError,           //בעיות הרשאה או גישה
+        SUCCESS,               //succesfully
+        NETWORKERROR,           //error 500
+        ACCESERROR,           //בעיות הרשאה או גישה
+    }
+    public enum eDialogType
+    {
+        OK,
+        ASK,
+        GETPARAMETER,
+        ERROR
     }
 }

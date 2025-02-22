@@ -36,16 +36,17 @@ public class SQLiteAccess :DBConnection
     {
         if (!File.Exists(_databaseFilePath))
         {
-            SQLiteConnection.CreateFile(_databaseFilePath); // יצירת הקובץ
+            SQLiteConnection.CreateFile(_databaseFilePath+ "database.db"); // יצירת הקובץ
             Console.WriteLine("Database file created.");
         }
     }
     // הוספת נתונים
     public override bool InsetData<T>(List<T> entity) where T : class
     {
+       var typeClass = typeof(T);
         using (var connection = GetConnection())
         {
-            string tableName = typeof(T).Name;
+            string tableName = typeClass.Name;
             connection.Open();
             // Check if the table exists
             var tableExistsQuery = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{tableName}'";
@@ -54,12 +55,13 @@ public class SQLiteAccess :DBConnection
             if (!tableExists)
             {
                 // Create table if it doesn't exist
-                var columns = string.Join(", ", typeof(T).GetProperties().Select(p => $"{p.Name} TEXT"));
+              
+                var columns = string.Join(",", typeClass.GetProperties().Select(p => $"{p.Name} TEXT"));
                 var createTableQuery = $"CREATE TABLE IF NOT EXISTS {tableName} ({columns})";
                 connection.Execute(createTableQuery);
             }
-            var query = $"INSERT INTO {tableName} ({string.Join(",", entity.GetType().GetProperties().Select(p => p.Name))}) " +
-                        $"VALUES ({string.Join(",", entity.GetType().GetProperties().Select(p => "@" + p.Name))})";
+            var query = $"INSERT INTO {tableName} ({string.Join(",", typeClass.GetProperties().Select(p => p.Name))}) " +
+                        $"VALUES ({string.Join(",", typeClass.GetProperties().Select(p => "@" + p.Name))})";
 
              connection.Execute(query, entity);
         }
@@ -97,14 +99,16 @@ public class SQLiteAccess :DBConnection
 
     protected override string GetFilePath<T>() where T : class
     {
+       //not need in this class
         return null;
     }
     // Select Operation
-    public  List<T> GetDBSet<T>( object parameters = null)
+    public  List<T> GetDBSet<T>(string selectedField="", object parameters = null)
     {
         using (var connection = GetConnection())
         {
            string query = "SELECT * FROM " + typeof(T).Name;
+            query = (selectedField!="")? query.Replace("*",selectedField): query;
             connection.Open();
             return connection.Query<T>(query, parameters).ToList();
         }
