@@ -20,6 +20,7 @@
           </utum:MaterialToolkitTheme.FontOverrideDictionary> -->
         </utum:MaterialToolkitTheme>
                 <ResourceDictionary Source="Styles/PopupStyles.xaml"/>
+                <ResourceDictionary Source="Styles/AutoSuggestBoxStyle.xaml"/>
 
             </ResourceDictionary.MergedDictionaries>
 

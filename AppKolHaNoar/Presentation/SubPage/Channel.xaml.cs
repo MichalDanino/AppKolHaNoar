@@ -14,7 +14,7 @@ using Microsoft.UI.Xaml.Navigation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Services.Store;
-using AppKolHaNoar.Presentation.ViewProcess;
+using AppKolHaNoar.Services;
 using static DTO.Enums;
 
 
@@ -27,7 +27,7 @@ namespace AppKolHaNoar.Presentation.SubPage;
 /// </summary>
 public sealed partial class Channel : Page
 {
-    static ActionService UI;
+    static ServiceUI UI;
     public Channel()
     {
         this.InitializeComponent();
@@ -36,12 +36,12 @@ public sealed partial class Channel : Page
 
     private async void SaveChannel(object sender, RoutedEventArgs e)
     {
-        UI = new ActionService();
+        UI = new ServiceUI();
        List< ChannelExtension> channelExtension = new List<ChannelExtension>()
        {
            new ChannelExtension()
            {
-                ChannelExtension_ID = ChannelURL.Text,
+                ChannelExtension_ChannelID = ChannelURL.Text,
                 ChannelExtension_Long = longVideo.Text,
                 ChannelExtension_Short = shortVideo.Text,
                 ChannelExtension_Campaign = Campaign.Text

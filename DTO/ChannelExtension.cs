@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 namespace DTO;
 public class ChannelExtension
 {
-    public string ChannelExtension_ID {  get; set; }    
+    public int ChannelExtension_ID {  get; set; }    
 
+    public string ChannelExtension_ChannelID { get; set; }
     public string ChannelExtension_Name { get; set; }
 
     public string ChannelExtension_Long { get; set; }

@@ -147,7 +147,14 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Presentation\ViewProcess\" />
+    <Page Update="Services\UIService.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Styles\AutoSuggestBoxStyle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
 </Project>

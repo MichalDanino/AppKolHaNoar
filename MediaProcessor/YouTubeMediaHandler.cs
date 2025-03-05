@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using DotNetEnv;
 using DTO;
+using static DTO.Enums;
 using Google;
 using Google.Apis.Http;
 using Google.Apis.Services;
@@ -28,25 +29,23 @@ namespace MediaProcessor
         /// </summary>
         /// <param name="NameChannel">name channel to check</param>
         /// <returns>return true if there are new video otherwish, false</returns>
-        public bool CheckForNewVideos(string NameChannel)
+        public eStatus CheckForNewVideos(string NameChannel)
         {
+            eStatus status = eStatus.SUCCESS;
             if (!string.IsNullOrEmpty(NameChannel))
             {
-                string channelID = "UC-Dheb1tLoTo962VC2of1bw"; /*"GetChannelIdByName(NameChannel);*/
+                string channelID = NameChannel; 
                 DateTime lastUpdateExtension = GetLastUpdateExtension(channelID);
                 // get list of last video in channel
-                listResponse = YouTubeAPI.fetchChannelVideosByAPI(channelID).GetAwaiter().GetResult();
-               
-               var newVideo = listResponse.Items.Where(a => a.Id.Kind == "youtube#video" && a.Snippet.PublishedAt > lastUpdateExtension);
-               
+                status = YouTubeAPI.YouTubeMediaMain(channelID).Result;
                 //if there are new video
-              if(newVideo.Any())
-              {
-                  return true;
-              }
+              //if(newVideo.Any())
+              //{
+                  return status;
+             // }
             }
                 
-            return false;
+            return status;
         }
 
         /// <summary>
@@ -54,7 +53,7 @@ namespace MediaProcessor
         /// </summary>
         /// <param name="channelID"></param>
         /// <returns>return true if successful ,otherwish false</returns>
-        public bool DownLoadVideoAsAudio(string channelID)
+        public eStatus DownLoadVideoAsAudio(string channelID)
         {
             return YouTubeAPI.DownloadVideoAsAudio(channelID, listResponse).Result;
             

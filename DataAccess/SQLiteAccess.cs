@@ -7,6 +7,8 @@ using Dapper;
 using System.Linq;
 using System.Data.Common;
 using DataAccess.MainDataAccess;
+using static Dapper.SqlMapper;
+using System.Reflection;
 
 
 namespace DataAccess;
@@ -36,7 +38,7 @@ public class SQLiteAccess :DBConnection
     {
         if (!File.Exists(_databaseFilePath))
         {
-            SQLiteConnection.CreateFile(_databaseFilePath+ "database.db"); // יצירת הקובץ
+            SQLiteConnection.CreateFile(_databaseFilePath); // יצירת הקובץ
             Console.WriteLine("Database file created.");
         }
     }
@@ -49,8 +51,8 @@ public class SQLiteAccess :DBConnection
             string tableName = typeClass.Name;
             connection.Open();
             // Check if the table exists
-            string tableExistsQuery = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{tableName}'";
-            bool tableExists = connection.Query<string>(tableExistsQuery).Any();
+            string tableExistsQuery = $"SELECT name FROM sqlite_master WHERE type='table' AND name=@TableName";
+            bool tableExists = connection.Query<string>(tableExistsQuery, new { TableName = tableName }).Any(); // **שימוש בפרמטר במקום הכנסת שם הטבלה ישירות**
 
             if (!tableExists)
             {
@@ -67,26 +69,52 @@ public class SQLiteAccess :DBConnection
                 string createTableQuery = $"CREATE TABLE IF NOT EXISTS {tableName} ({columns})";
                 connection.Execute(createTableQuery);
             }
-            string query = $"INSERT INTO {tableName} ({string.Join(",", typeClass.GetProperties().Where(p => !p.Name.Equals("ID", StringComparison.OrdinalIgnoreCase)).Select(p => p.Name))}) " +
-                   $"VALUES ({string.Join(",", typeClass.GetProperties().Where(p => !p.Name.Equals("ID", StringComparison.OrdinalIgnoreCase)).Select(p => "@" + p.Name))})";
+            var properties = typeClass.GetProperties()
+          .Where(p => !(p.Name.Contains("_ID", StringComparison.OrdinalIgnoreCase) && p.PropertyType == typeof(int)))
+          .ToList();
 
-            connection.Execute(query, entity);
+            string query = $"INSERT INTO {tableName} ({string.Join(",", properties.Select(p => p.Name))}) " +
+                         $"VALUES ({string.Join(",", properties.Select(p => "@" + p.Name))})";
 
             connection.Execute(query, entity);
         }
         return true;
     }
 
-    public override bool UpdateData<T>( T entity, string condition)
+    public override bool UpdateData<T>( T entity)
     {
+        object uniqueValue = "";
         using (var connection = GetConnection())
         {
             string tableName = typeof(T).Name;  
             connection.Open();
-            var setClause = string.Join(", ", entity.GetType().GetProperties().Select(p => $"{p.Name} = @{p.Name}"));
-            var query = $"UPDATE {tableName} SET {setClause} WHERE {condition}";
+            
+            string uniqueValueName = typeof(T).GetProperties().FirstOrDefault(p => p.Name.Contains("_ID"))?.Name.ToString() ?? string.Empty;
+            var property = typeof(T).GetProperty(uniqueValueName);
+            if (property == null)
+            {
+                throw new Exception("שדה המזהה הייחודי לא קיים בישות.");
 
-             connection.Execute(query, entity);
+            }
+            uniqueValue = property.GetValue(entity);
+
+            var setClause = string.Join(", ", entity.GetType()
+                             .GetProperties()
+                             .Where(p => p.Name != uniqueValueName) // מוודא שה-ID לא יהיה בסט
+                             .Select(p => $"{p.Name} = @{p.Name}"));
+
+            // יצירת שאילתת עדכון
+            var query = $"UPDATE {tableName} SET {setClause} WHERE {uniqueValueName} = @UniqueValue";
+
+            //var setClause = string.Join(", ", entity.GetType().GetProperties().Select(p => $"{p.Name} = @{p.Name}"));
+            //var query = $"UPDATE {tableName} SET {setClause} WHERE {uniqueValueName} = @uniqueValue ";
+            var parameters = entity.GetType()
+                              .GetProperties()
+                              .Where(p => p.Name != uniqueValueName)
+                              .ToDictionary(p => p.Name, p => p.GetValue(entity));
+
+            parameters["UniqueValue"] = uniqueValue;
+            connection.Execute(query, parameters);
         }
         return true;
     }
@@ -96,9 +124,10 @@ public class SQLiteAccess :DBConnection
     {
         using (var connection = GetConnection())
         {
-            string tableName = typeof (T).Name; 
+            string tableName = typeof (T).Name;
+            string setClause = typeof(T).GetProperties().FirstOrDefault(p => p.Name.Contains("_ID"))?.Name.ToString()?? string.Empty;
             connection.Open();
-            var query = $"DELETE FROM {tableName} WHERE {condition}";
+            var query = $"DELETE FROM {tableName} WHERE {setClause}= @condition";
              connection.Execute(query);
             return true;
         }
@@ -114,12 +143,32 @@ public class SQLiteAccess :DBConnection
     // Select Operation
     public  List<T> GetDBSet<T>(string selectedField="", object parameters = null)
     {
-        using (var connection = GetConnection())
+        try
         {
-           string query = "SELECT * FROM " + typeof(T).Name;
-            query = (selectedField!="")? query.Replace("*",selectedField): query;
-            connection.Open();
-            return connection.Query<T>(query, parameters).ToList();
+            using (var connection = GetConnection())
+            {
+                string query = "SELECT * FROM " + typeof(T).Name;
+                query = (selectedField != "") ? query.Replace("*", selectedField) : query;
+                connection.Open();
+                return connection.Query<T>(query, parameters).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            return new List<T>();
         }
     }
+
+    public bool UpdatelistData<T>(List<T> values) where T : class
+    {
+        bool status  = false;
+        foreach (var item in values)
+        {
+           status= UpdateData<T>(item);    
+        }
+        return status;  
+    }
+    
+
+    
 }

@@ -32,7 +32,7 @@ public abstract class DBConnection
     /// <param name="entity">entity data for action</param>
     /// <param name="exAction">Type of action</param>
     /// <returns>true if successful otherwise, returns false</returns>
-    public bool Execute<T>(List<T> entity, String updatePrimaryKey, ExecuteActions exAction) where T : class
+    public bool Execute<T>(List<T> entity, string updatePrimaryKey, ExecuteActions exAction) where T : class
     {
 
         bool isSecssed = false;
@@ -47,7 +47,7 @@ public abstract class DBConnection
                         isSecssed = true;
                         break;
                     case ExecuteActions.Update:
-                        UpdateData(entity[0], updatePrimaryKey);
+                        UpdateData(entity[0]);
 
                         isSecssed = true;
                         break;
@@ -85,7 +85,7 @@ public abstract class DBConnection
     /// <param name="entity">entity data for update</param>
     /// <param name="updatePrimaryKey">Holds the column name and value used to identify the row to be update</param>
     /// <returns>true if successful otherwise, returns false</returns>
-    public abstract bool UpdateData<T>(T entity, string updatePrimaryKey) where T : class;
+    public abstract bool UpdateData<T>(T entity) where T : class;
 
     /// <summary>
     /// Delete date by unique identifier

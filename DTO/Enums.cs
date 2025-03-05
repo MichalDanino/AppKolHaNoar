@@ -8,18 +8,21 @@ using System.Threading.Tasks;
 namespace DTO;
 public static class Enums
 {
-    public enum eERROR
+    public enum eStatus
     {
         //לבדוק תקינות של של האינם
         SUCCESS,               //succesfully
         NETWORKERROR,           //error 500
         ACCESERROR,           //בעיות הרשאה או גישה
+        FAILED,
+        APIQuota
     }
     public enum eDialogType
     {
         OK,
         ASK,
         GETPARAMETER,
+        MultyButton,
         ERROR
     }
 }

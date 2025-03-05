@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DTO;
+using MediaProcessor.API;
+using Microsoft.UI.Xaml;
 using Windows.Foundation;
 using static DTO.Enums;
 
@@ -12,6 +14,10 @@ public class Dialogs
 {
  
     private static ContentDialog currentDialog;
+    private static DBHandler updateDB = new DBHandler();
+   private static List<string> nameTable = new List<string>() { "עדכון הקמפיינים", "עדכון שלוחות", "עדכון ערוצים", "אישור" };
+    private static int timeOut;
+    private TaskCompletionSource<string> dialogResultSource;
 
     /// <summary>
     /// Displays a content dialog with a specified timeout. If the dialog is not interacted with before the timeout,
@@ -27,7 +33,8 @@ public class Dialogs
     /// </returns>
     public static async Task<ContentDialogResult> MainShowDialog(XamlRoot xamlRoot,GenericMessage message , eDialogType dialogType)
     {
-        Dialogs dialogClass = new Dialogs(); 
+        Dialogs dialogClass = new Dialogs();
+        timeOut = -1;
         switch (dialogType)
         {
             case eDialogType.OK:
@@ -36,27 +43,39 @@ public class Dialogs
             case eDialogType.ASK:
                 dialogClass.AskDialog(xamlRoot, message);
                 break;
+            case eDialogType.MultyButton:
+               dialogClass.DataChangeDialog(xamlRoot,message);
+                break;  
             default:
                 break;
         }
         if (currentDialog != null)
         {
             var result = currentDialog.ShowAsync();
+            var cancellationTokenSource = new CancellationTokenSource();
 
+            //var dialogTask = result.AsTask();
             // Wait for either the dialog to complete or the timeout to occur
-            Task completedTask = await Task.WhenAny(result.AsTask(), Task.Delay(50000));
+            Task completedTask = await Task.WhenAny(result.AsTask(), Task.Delay(timeOut== -1? Timeout.Infinite : timeOut, cancellationTokenSource.Token));
            
             // If the dialog operation completes, return the result
             if (completedTask == result.AsTask())
             {
                 return result.GetResults();
 
+                
 
             }
             else
             {
+                // If the dialog operation completes, return the result
+                if (!cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    return result.GetResults();
+                }
                 // Timeout occurred, close the dialog and return None
                 currentDialog.Hide();
+
             }
            
 
@@ -65,6 +84,8 @@ public class Dialogs
 
 
     }
+
+
     public  void AskDialog(XamlRoot xamlRoot, GenericMessage message)
     {
         currentDialog = new ContentDialog
@@ -75,6 +96,7 @@ public class Dialogs
             SecondaryButtonText = "No",
             XamlRoot = xamlRoot 
         };
+        
 
 
        
@@ -96,6 +118,46 @@ public class Dialogs
             XamlRoot = pageXamlRoot 
 
         };
+        timeOut = 300000;
+
+
+    }
+
+    public void DataChangeDialog(XamlRoot pageXamlRoot, GenericMessage message)
+    {
+        StackPanel stackPanel = new StackPanel();
+        //dialogResultSource = new TaskCompletionSource<string>();
+
+        currentDialog = new ContentDialog
+        {
+            Title = message.MessageTitle,
+            Content = stackPanel,
+            XamlRoot = pageXamlRoot,
+            PrimaryButtonText = "אישור", // מונע סגירה אוטומטית
+            CloseButtonText = ""
+        };
+
+        foreach (var buttonText in nameTable)
+        {
+            var button = new Button
+            {
+                Content = buttonText,
+                Margin = new Thickness(5)
+            };
+            if (buttonText == "אישור")
+            {
+                button.Click += (sender, e) =>
+                {
+                     dialogResultSource.SetResult(buttonText);
+                    currentDialog.Hide();
+                };
+            }
+            else { 
+            button.Click += (sender, e) => updateDB.ChangeDataInDB(buttonText);
+            }
+
+            stackPanel.Children.Add(button);
+        }
 
 
     }

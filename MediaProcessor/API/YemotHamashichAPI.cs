@@ -16,11 +16,19 @@ public class YemotHamashichAPI
     private static readonly string baseUrl = "https://www.call2all.co.il//ym/api/";
     private const int chunkSize = 50000000;
     private const string remotePath = "ivr2:";
+
     private static string token = "";
-    string folderPath = @"C:\Program Files\KolHaNoar\Downloads";
-    private static HttpClient httpClient = new HttpClient();
-     GenericMessage exceptions = new  GenericMessage();
-    public eERROR status = eERROR.SUCCESS;
+    private static HttpClient httpClient;
+    static GenericMessage exceptions;
+    static DateTime timestamp;
+    public eStatus status;
+
+
+    static YemotHamashichAPI()
+    {
+        httpClient = new HttpClient();
+        exceptions = new GenericMessage();
+    }
     /// <summary>
     /// The function is designed to define all the necessary components for uploading a file to the system,
     /// including creating an HTTP POST request with content in multipart/form-data format, 
@@ -49,13 +57,13 @@ public class YemotHamashichAPI
                         var formData = CreateFormData(chunk, videoFile);
                         string response = await Uploadfile(formData);
                         status = await Exceptions.checkUploadFile(response);
-                        if (status == eERROR.ACCESERROR)
+                        if (status == eStatus.ACCESERROR)
                         {
                             break;
                         }
                     }
                     // if there is problem with the internet connection.stop all uploading
-                    if (status == eERROR.NETWORKERROR)
+                    if (status == eStatus.NETWORKERROR)
                     {
                         break;
                     }
@@ -74,8 +82,9 @@ public class YemotHamashichAPI
     /// <returns>Token code</returns>
     public async Task<string> HandleRequest()
     {
-
+        
         var response = await httpClient.GetStringAsync(baseUrl + $"Login?username={AppConfig.UserNameYH}&password={AppConfig.passwordYH}");
+        timestamp = DateTime.Now;
         var jsonResponse = JObject.Parse(response);
 
         if (jsonResponse["responseStatus"].ToString() == "OK")
@@ -173,12 +182,30 @@ public class YemotHamashichAPI
 
     public async Task<string> RunCampaign(string campain)
     {
-        token = await HandleRequest();
+        if (IsTimestampExpired())
+        {
+            token = await HandleRequest();
+        }
+        timestamp = DateTime.Now;       
+
         var response = await httpClient.GetAsync(baseUrl + $"RunCampaign/?token={token}&templateId={campain}");
         return await response.Content.ReadAsStringAsync();
 
     }
 
-  
+    //public async Task<string> GetCampaing()
+    //{ 
+    //    if(IsTimestampExpired())
+    //        token = await HandleRequest();
+    //   // var response = await httpClient.GetAsync(baseUrl + $"RunCampaign/?token={token}&templateId={campain}");
+    //   // return await response.Content.ReadAsStringAsync();
+
+    //}
+
+    private bool IsTimestampExpired()
+    {
+        return timestamp.AddMinutes(30) <= DateTime.Now;
+    }
+
 }
 

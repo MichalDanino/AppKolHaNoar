@@ -1,241 +1,348 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using DataAccess.MainDataAccess;
 using DTO;
+
+using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using static OfficeOpenXml.ExcelErrorValue;
+using static DTO.TranslationTable;
 
 namespace DataAccess
 {
-   
-       public class ExcelDataAccess : DBConnection
+
+    public class ExcelDataAccess : DBConnection
+    {
+        static int s_ExcelRowNumber = 1;
+        static int s_ExcelColumnNumber = 0;
+
+        private readonly string _databaseFilePath;
+
+        private static readonly Dictionary<string, int> _propertyIndex = new Dictionary<string, int>();
+        private static readonly Dictionary<Type, PropertyInfo[]> _propertyCache = new Dictionary<Type, PropertyInfo[]>();
+
+        public ExcelDataAccess(string databaseFilePath)
         {
-            static int s_ExcelRowNumber = 0;
-            static int s_ExcelColumnNumber = 0;
-            public static ColumnValuePair columnValuePair = new ColumnValuePair();
+            _databaseFilePath = databaseFilePath;
+        }
 
-            private static readonly Dictionary<string, int> _propertyIndex = new Dictionary<string, int>();
-            private static readonly Dictionary<Type, PropertyInfo[]> _propertyCache = new Dictionary<Type, PropertyInfo[]>();
 
-            public override bool InsetData<T>(List<T> entityList) where T : class
+        public override bool InsetData<T>(List<T> entityList) where T : class
+        {
+
+            // Get Path
+            string filePath = GetFilePath<T>();
+            bool uniqueNamecell = false;
+            // Check if the file exists, if not create new file
+            bool fileExists = File.Exists(filePath);
+
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
+
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
             {
-                // Get Path
-                string filePath = GetFilePath<T>();
+                //Create new Workbook
+                var worksheet = fileExists
+                    ? package.Workbook.Worksheets[0]
+                    : package.Workbook.Worksheets.Add("Sheet1");
 
-                // Check if the file exists, if not create new file
-                var fileExists = File.Exists(filePath);
+                // Create column headings
+                if (!fileExists || worksheet.Dimension == null)
+                {
+                    var properties = typeof(T).GetProperties(); // class properties
+                    int col = 1;
+
+                    foreach (var property in properties)
+                    {
+                        var headerCell = worksheet.Cells[1, col];
+                        headerCell.Value = PropertyNamesInHebrew[property.Name]; // put name propertie as heading
+                        col++;
+                        headerCell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        headerCell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightCyan);
+                        headerCell.Style.Font.Bold = true;
+                        headerCell.Style.Locked = true;
+                    }
+                }
+                s_ExcelRowNumber = worksheet.Dimension?.Rows + 1 ?? 2;
+                worksheet.Cells.AutoFitColumns();
+
+                //   Add data
+                foreach (T entity in entityList)
+                {
+                    PropertyInfo[] properties = typeof(T).GetProperties();
+                    int col = 1;
+
+                    foreach (PropertyInfo property in properties)
+                    {
+                        var value = property.GetValue(entity);
+                        uniqueNamecell = property.Name.Contains("_ID");
+
+                        worksheet.Cells[s_ExcelRowNumber, col].Value = value?.ToString() ?? string.Empty;
+                        worksheet.Cells[s_ExcelRowNumber, col].Style.Locked = false;
+                        if (uniqueNamecell)
+                        {
+
+                            worksheet.Cells[s_ExcelRowNumber, col].Style.Locked = true;
+                            worksheet.Cells[s_ExcelRowNumber, col].Value = value?.ToString() ?? string.Empty;
+
+
+                        }
+
+                        col++;
+                    }
+                    s_ExcelRowNumber++;
+
+                }
+                worksheet.Protection.IsProtected = true;
+                worksheet.Protection.AllowSelectUnlockedCells = true;
+                worksheet.Protection.AllowInsertRows = true;
+
+
+                package.Save();
+            }
+            return true;
+        }
+        public override bool UpdateData<T>(T DataUpdate) where T : class
+        {
+            string filePath = GetFilePath<T>();
+            string uniqueValue = "";
+
+
+            if (File.Exists(filePath))
+            {
+
+
                 ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-
-
                 using (var package = new ExcelPackage(new FileInfo(filePath)))
                 {
-                    //Create new Workbook
-                    var worksheet = fileExists
-                        ? package.Workbook.Worksheets[0]
-                        : package.Workbook.Worksheets.Add("Sheet1");
 
-                    // Create column headings
-                    if (!fileExists || worksheet.Dimension == null)
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    PropertyInfo uniqueProperty = typeof(T).GetProperties()
+                                     .FirstOrDefault(p => p.Name.Contains("_ID"));
+                    // string uniqueColumn = uniqueProperty.Name;
+                    uniqueValue = uniqueProperty.GetValue(DataUpdate)?.ToString();
+                    if (uniqueValue != string.Empty)
+                        throw new Exception("הערך של עמודת המזהה הייחודי ריק או null");
+
+                    int rowToUpdate = FindLine(worksheet, uniqueValue);
+                    if (rowToUpdate == -1)
+                        return false; // הרשומה לא נמצאה
+
+                    UpdateExcelData<T>(worksheet);
+
+                    foreach (var property in SetClassProperties<T>())
                     {
-                        var properties = typeof(T).GetProperties(); // class properties
-                        int col = 1;
+                        if (property.Name.Contains("_ID"))
+                            continue;
 
-
-                        foreach (var property in properties)
+                        if (_propertyIndex.TryGetValue(property.Name, out int columnIndex))
                         {
-                            var headerCell = worksheet.Cells[1, col];
-                            headerCell.Value = property.Name; // put name propertie as heading
-                            col++;
-                            headerCell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                            headerCell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightCyan);
-                            headerCell.Style.Font.Bold = true;
+                            object fieldValue = property.GetValue(DataUpdate);
+
+                            // עדכון התא בעמודה המתאימה
+                            worksheet.Cells[rowToUpdate, columnIndex].Value = fieldValue?.ToString() ?? string.Empty; ;
                         }
                     }
 
-
-
-                    // Add data
-                    foreach (var entity in entityList)
-                    {
-                        var properties = typeof(T).GetProperties();
-                        int col = 1;
-
-                        foreach (var property in properties)
-                        {
-                            var value = property.GetValue(entity);
-                            worksheet.Cells[s_ExcelRowNumber + 1, col].Value = value?.ToString() ?? string.Empty;
-
-                            col++;
-                        }
-
-                        s_ExcelRowNumber++;
-                    }
 
                     package.Save();
                 }
-                return true;
+
             }
-            public override bool UpdateData<T>(T DataUpdate, String updatePrimaryKey) where T : class
+            // שמירת הקובץ
+
+            return true;
+
+        }
+        public override bool RemoveData<T>(string RemovePrimaryKey) where T : class
+        {
+            string filePath = GetFilePath<T>();
+
+            string uniqueValue = RemovePrimaryKey;
+
+            if (File.Exists(filePath))
             {
-                string filePath = GetFilePath<T>();
-                string fieldValue = "";
 
-                columnValuePair.columnName = updatePrimaryKey.Split('.')[0];
-                columnValuePair.Value = updatePrimaryKey.Split('.')[1];
+                ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage(new FileInfo(filePath)))
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    UpdateExcelData<T>(worksheet);
+
+                    //Get line to delete
+                    int lineToDelete = FindLine(worksheet, uniqueValue);
+
+                    //Check line validity
+                    if (lineToDelete == 0)
+                        return false;
+                    else
+                        worksheet.DeleteRow(lineToDelete);
+
+                    // Save file
+                    package.Save();
+
+                }
+            }
 
 
-                if (File.Exists(filePath))
+            return true;
+        }
+
+        /// <summary>
+        /// Get path Excel
+        /// </summary>
+        /// <typeparam name="T">The type of the object on which the action is performed</typeparam>
+        /// <returns>path excel</returns>
+        protected override string GetFilePath<T>()
+        {
+            string fileName = typeof(T).Name.Replace("DTO", "");
+            string filePath = _databaseFilePath + fileName + ".xlsx";
+            return filePath;
+        }
+
+        /// <summary>
+        /// Find specipic line according to name column and field value
+        /// </summary>
+        /// <param name="worksheet"></param>
+        /// <param name="entity"></param>
+        /// <param name="columnName"></param>
+        /// <returns>return line index if find the spesipice line, otherwise return 0 </returns>
+        private int FindLine(ExcelWorksheet worksheet, string uniqueColumn)
+        {
+            // חיפוש עמודת המפתח
+            int keyColumnIndex = 1;
+            for (; keyColumnIndex <= s_ExcelColumnNumber; keyColumnIndex++)
+            {
+                if (worksheet.Cells[1, keyColumnIndex].Text.Contains("_ID"))
+                {
+                    break;
+                }
+            }
+            if (keyColumnIndex > s_ExcelColumnNumber)
+            {
+                return -1;
+            }
+            for (int row = 2; row <= s_ExcelRowNumber; row++)
+            {
+                if (worksheet.Cells[row, keyColumnIndex].Text == uniqueColumn)
                 {
 
-                    //מקבל את ערך לעדכון
-                    // properties = GetspecificProperty<T>(columnValuePair.columnName).GetValue(entity).ToString();
+                    return row;
+                }
+            }
+            return -1;
+        }
 
-                    ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-                    using (var package = new ExcelPackage(new FileInfo(filePath)))
+        private void UpdateExcelData<T>(ExcelWorksheet worksheet)
+        {
+            s_ExcelRowNumber = worksheet.Dimension.Rows;
+            s_ExcelColumnNumber = worksheet.Dimension.Columns;
+            // Column index mapping
+            for (int col = 1; col <= s_ExcelColumnNumber; col++)
+            {
+                var header = worksheet.Cells[1, col].Text;
+                if (!string.IsNullOrEmpty(header))
+                    _propertyIndex[header] = col;
+            }
+            SetClassProperties<T>();
+
+
+        }
+
+        public static PropertyInfo[] SetClassProperties<T>()
+        {
+            var type = typeof(T);
+
+            if (!_propertyCache.ContainsKey(type))
+            {
+
+                _propertyCache[type] = type.GetProperties();
+            }
+
+            return _propertyCache[type];
+        }
+        public void OpenExcelForUser<T>() where T : class
+        {
+            string filePath = GetFilePath<T>();
+            if (File.Exists(filePath))
+            {
+
+                // Start Excel and open the file
+                Process.Start($"C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE", $"\"{filePath}\"");
+            }
+        }
+
+
+        public List<T> GetDataFromExcel<T>() where T : class, new()
+        {
+            string filePath = GetFilePath<T>();
+
+            var result = new List<T>();
+
+            if (File.Exists(filePath))
+            {
+
+                ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage(new FileInfo(filePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];  // בחר את הגיליון הראשון
+                    var properties = typeof(T).GetProperties();  // קבל את התכונות של המחלקה T
+
+                    // הנחת עבודה היא שהשורה הראשונה מכילה את כותרות העמודות
+                    // מתחילים בקריאה מהשורה השנייה כדי לדלג על כותרות העמודות
+                    for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
                     {
+                        var entity = new T();  // יצירת אובייקט חדש מהמחלקה T
 
-                        ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
-                        int lineToUpdate = FindLine(worksheet, columnValuePair.Value, columnValuePair.columnName);
-
-                        UpdateExcelData<T>(worksheet);
-
-                        foreach (var property in SetClassProperties<T>())
+                        int col = 1;
+                        foreach (var property in properties)
                         {
-                            fieldValue = property.GetValue(DataUpdate)?.ToString();
-                            if (_propertyIndex.TryGetValue(property.Name, out int columnIndex) && fieldValue != null)
+                            var value = worksheet.Cells[row, col].Text;  // קריאה לערך בתא
+                            if (value != null && value !="")
                             {
-                                // עדכון התא בעמודה המתאימה
-                                worksheet.Cells[lineToUpdate, columnIndex].Value = fieldValue;
+                                property.SetValue(entity, Convert.ChangeType(value, property.PropertyType));  // המרת הערך והגדרתו בתכונה המתאימה
                             }
+                            col++;
                         }
 
-
-                        package.Save();
-                    }
-
-                }
-                // שמירת הקובץ
-
-                return true;
-
-            }
-            public override bool RemoveData<T>(string RemovePrimaryKey) where T : class
-            {
-                string filePath = GetFilePath<T>();
-
-                columnValuePair.columnName = RemovePrimaryKey.Split('.')[0];
-                columnValuePair.Value = RemovePrimaryKey.Split('.')[1];
-
-                if (File.Exists(filePath))
-                {
-
-                    ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-                    using (var package = new ExcelPackage(new FileInfo(filePath)))
-                    {
-                        ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
-                        UpdateExcelData<T>(worksheet);
-
-                        //Get line to delete
-                        int lineToDelete = FindLine(worksheet, columnValuePair.Value, columnValuePair.columnName);
-
-                        //Check line validity
-                        if (lineToDelete == 0)
-                            return false;
-                        else
-                            worksheet.DeleteRow(lineToDelete);
-
-                        // Save file
-                        package.Save();
-
+                        result.Add(entity);  // הוספת האובייקט שנוצר לרשימה
                     }
                 }
 
-
-                return true;
+                return result;
             }
 
-            /// <summary>
-            /// Get path Excel
-            /// </summary>
-            /// <typeparam name="T">The type of the object on which the action is performed</typeparam>
-            /// <returns>path excel</returns>
-            protected override string GetFilePath<T>()
+            return null;
+        }
+
+        public Enums.eStatus DeleteExcelPackage<T>() where T : class, new()
+        {
+            string filePath = GetFilePath<T>();
+
+            if (File.Exists(filePath))
             {
-                string fileName = typeof(T).Name.Replace("DTO", "");
-                string filePath = fileName + ".xlsx";
-                return filePath;
+                ClouseExcelFile(filePath);
+                Thread.Sleep(9000);
+                File.Delete(filePath);
+                return Enums.eStatus.SUCCESS;
             }
-
-            /// <summary>
-            /// Find specipic line according to name column and field value
-            /// </summary>
-            /// <param name="worksheet"></param>
-            /// <param name="entity"></param>
-            /// <param name="columnName"></param>
-            /// <returns>return line index if find the spesipice line, otherwise return 0 </returns>
-            private int FindLine(ExcelWorksheet worksheet, string fieldValue, string columnName)
+            return Enums.eStatus.FAILED;
+        }
+        public void ClouseExcelFile(string filePath)
+        {
+           
+            var processes = Process.GetProcessesByName("EXCEL");
+            foreach (var process in processes)
             {
-                // חיפוש עמודת המפתח
-                int keyColumnIndex = 1;
-                for (; keyColumnIndex <= s_ExcelColumnNumber; keyColumnIndex++)
-                {
-                    if (worksheet.Cells[1, keyColumnIndex].Text == columnName)
-                    {
-                        break;
-                    }
-                }
-                if (keyColumnIndex > s_ExcelColumnNumber)
-                {
-                    return 0;
-                }
-                for (int row = 2; row <= s_ExcelRowNumber; row++)
-                {
-                    if (worksheet.Cells[row, keyColumnIndex].Text == fieldValue)
-                    {
-
-                        return row;
-                    }
-                }
-                return 0;
+                process.Kill(); // סוגר את התהליך של Excel
             }
+        }
 
-            private void UpdateExcelData<T>(ExcelWorksheet worksheet)
-            {
-                s_ExcelRowNumber = worksheet.Dimension.Rows;
-                s_ExcelColumnNumber = worksheet.Dimension.Columns;
-                // Column index mapping
-                for (int col = 1; col <= s_ExcelColumnNumber; col++)
-                {
-                    var header = worksheet.Cells[1, col].Text;
-                    if (!string.IsNullOrEmpty(header))
-                        _propertyIndex[header] = col;
-                }
-                SetClassProperties<T>();
-
-
-            }
-
-            public static PropertyInfo[] SetClassProperties<T>()
-            {
-                var type = typeof(T);
-
-                if (!_propertyCache.ContainsKey(type))
-                {
-
-                    _propertyCache[type] = type.GetProperties();
-                }
-
-                return _propertyCache[type];
-            }
-
-     
-    
-
-   }
-
+    }
 }

@@ -12,14 +12,14 @@ namespace MediaProcessor;
 public  class Exceptions
 {
     static GenericMessage _exception;
-    static eERROR _error;
+    static eStatus _error;
     public Exceptions()
     {
         _exception = new GenericMessage();
-        _error= eERROR.SUCCESS;
+        _error= eStatus.SUCCESS;
     }
 
-    public static async Task<eERROR> checkUploadFile(string statusResponse)
+    public static async Task<eStatus> checkUploadFile(string statusResponse)
     {
         AppConfig.listExceptions.Clear();   
         List<string> uploadRespone = statusResponse.Split(',').Where(a => a.Contains("responseStatus") || a.Contains
@@ -27,7 +27,7 @@ public  class Exceptions
 
         if (!uploadRespone[0].Contains("OK"))
         {
-            _error = eERROR.NETWORKERROR;
+            _error = eStatus.NETWORKERROR;
             _exception.MessageTitle = _error.ToString();
             _exception.MessageContent = "שגיאה בהתחברות לשרת. בדוק חיבור רשת ";
             AppConfig.listExceptions.Add(_exception);
@@ -38,7 +38,7 @@ public  class Exceptions
             _exception.MessageContent = "הבקשה נשלחה אך נכשלה. נסה שוב או בדוק את הקובץ";
             _exception.MessageTitle = _error.ToString();
             AppConfig.listExceptions.Add(_exception);
-            _error = eERROR.ACCESERROR;
+            _error = eStatus.ACCESERROR;
 
         }
         return _error;

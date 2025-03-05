@@ -41,13 +41,13 @@ namespace DataAccess
             // File.WriteAllText(filePath, jsonArray.ToString(Formatting.Indented));
             return true;
         }
-        public override bool UpdateData<T>(T entity, string updatePrimaryKey) where T : class
+        public override bool UpdateData<T>(T entity) where T : class
         {
 
             string filePath = GetFilePath<T>();
 
-            columnValuePair.columnName = updatePrimaryKey.Split('.')[0];
-            columnValuePair.Value = updatePrimaryKey.Split('.')[1];
+         //   columnValuePair.columnName = updatePrimaryKey.Split('.')[0];
+          //  columnValuePair.Value = updatePrimaryKey.Split('.')[1];
             // בדיקה אם הקובץ קיים
             if (!File.Exists(filePath))
             {
@@ -65,14 +65,14 @@ namespace DataAccess
                 // חיפוש האובייקט שצריך לעדכן
                 foreach (var item in jsonArray)
                 {
-                    if (item[columnValuePair.columnName]?.ToString() == columnValuePair.Value)
-                    {
-                        // עידכון הערכים באובייקט שנמצא
-                        //foreach (var update in entity)
-                        //{
-                        //    item[update.Key] = update.Value;
-                        //}
-                    }
+                    //if (item[columnValuePair.columnName]?.ToString() == columnValuePair.Value)
+                    //{
+                    //    // עידכון הערכים באובייקט שנמצא
+                    //    //foreach (var update in entity)
+                    //    //{
+                    //    //    item[update.Key] = update.Value;
+                    //    //}
+                    //}
                 }
 
                 // שמירת השינויים בקובץ
@@ -88,8 +88,7 @@ namespace DataAccess
         {
             string filePath = GetFilePath<T>();
 
-            columnValuePair.columnName = RemovePrimaryKey.Split('.')[0];
-            columnValuePair.Value = RemovePrimaryKey.Split('.')[1];
+         
             // בדיקה אם הקובץ קיים
             if (!File.Exists(filePath))
             {
@@ -107,10 +106,10 @@ namespace DataAccess
                 for (int i = jsonArray.Count - 1; i >= 0; i--)
                 {
                     var item = jsonArray[i];
-                    if (item[columnValuePair.columnName]?.ToString() == columnValuePair.Value)
-                    {
-                        jsonArray.RemoveAt(i);
-                    }
+                    //if (item[columnValuePair.columnName]?.ToString() == columnValuePair.Value)
+                    //{
+                    //    jsonArray.RemoveAt(i);
+                    //}
                 }
                 File.WriteAllText(filePath, jsonArray.ToString(Newtonsoft.Json.Formatting.Indented));
 
