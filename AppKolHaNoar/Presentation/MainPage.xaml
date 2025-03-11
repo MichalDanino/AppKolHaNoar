@@ -26,36 +26,33 @@
             AutomationProperties.AutomationId="SecondPageButton"
             Command="{Binding GoToSecond}" />-->
                 <ComboBox x:Name="comboBoxChannel" Width="150" Height="30" ItemsSource="{Binding Channels}"
-                 DisplayMemberPath="ChannelExtension_Name" 
-                  SelectedItem="{Binding SelectedChannel, Mode=TwoWay}" />
+                  DisplayMemberPath="ChannelExtension_Name"
+                  SelectedItem="{Binding SelectedChannel, Mode=TwoWay}"
+                          />
 
                 <!-- Row 2 -->
                 <Button Content="הוספת ערוץ" Grid.Column="1" Grid.Row="1" Margin="10" Click="AddChannel" />
            
-                <!-- Row 3 -->
 
                 <!-- Row 4 -->
-                <Button Content="שינוי סיסמה" Grid.Column="1" Grid.Row="3" Margin="10" />
-                <Button Content="הפעל קמפיין" Grid.Column="0" Grid.Row="3" Margin="10" Click="RunCampaign" />
-                <!--<AutoSuggestBox x:Name="comboBox" Width="200" Height="30"
-                            PlaceholderText="חפש פריט..."
-                                Text="{Binding AutoSuggestVM.SelectedText, Mode=TwoWay}"
-     ItemsSource="{Binding AutoSuggestVM.FilteredItems}"
-                                  TextChanged="AutoSuggestBox_TextChanged"
-     SuggestionChosen="AutoSuggestBox_SuggestionChosen"
-     LostFocus="AutoSuggestBox_LostFocus"
-Style="{StaticResource CustomAutoSuggestBoxStyle}" />-->
+                <!-- Row 4 -->
+                <Button x:Name="Password" Content="שינוי סיסמה למערכת ימות המשיח" Grid.Column="1" Grid.Row="3" Margin="10" Command="{Binding ShowDialogToChangePasswordCommand,Mode=TwoWay}" />
+              
+                <Button x:Name="RanCampaing" Content="הפעל קמפיין" Grid.Column="0" Grid.Row="3" Margin="10" Command="{Binding SendSelectedCampainCommand,Mode=TwoWay}" />
+            
                 <AutoSuggestBox
                     x:Name="autoSuggestBox"
             PlaceholderText="בחר פריט מהרשימה..."
-            Text="{Binding AutoSuggestVM.SelectedText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            Text="{Binding AutoSuggestVM.SelectedText.Campaign_Name, Mode=OneWay}"
             ItemsSource="{Binding AutoSuggestVM.Items}"
             TextChanged="AutoSuggestBox_TextChanged"
             SuggestionChosen="AutoSuggestBox_SuggestionChosen"
-            LostFocus="AutoSuggestBox_LostFocus"/>
+            LostFocus="AutoSuggestBox_LostFocus"
+                    DisplayMemberPath="Campaign_Name"
+                    Width="250" Height="30" />
 
                 <!-- Row 5 -->
-                <Button x:Name="BBb" Content="בצע בדיקה לערוץ" Grid.Column="1" Grid.Row="4" Margin="10" Command="{Binding SendSelectedChannelCommand,Mode=TwoWay}" />
+                <Button x:Name="RunUpdating" Content="בצע בדיקה לערוץ" Grid.Column="1" Grid.Row="4" Margin="10" Command="{Binding SendSelectedChannelCommand,Mode=TwoWay}" />
                 <!--<Button Content="בצע בדיקה לערוץ" Grid.Column="1" Grid.Row="4" Margin="10" Click="UpdateExtension" />-->
 
 

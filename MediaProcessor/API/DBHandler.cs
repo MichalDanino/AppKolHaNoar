@@ -1,6 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using DataAccess;
@@ -13,9 +16,10 @@ using static DTO.Enums;
 namespace MediaProcessor.API;
 public class DBHandler
 {
-    SQLiteAccess DBConnection1;
+    SQLiteAccess DBConnection1 = new SQLiteAccess(AppConfig.NameDBFile);
     ExcelDataAccess excelDataAccess = new ExcelDataAccess(AppConfig.rootURL);
     static int TotalRowsCount;
+
     #region Database handling
 
     public bool AddSet<T>(List<T> entity,String key) where T : class
@@ -35,7 +39,7 @@ public class DBHandler
 
     }
 
-    public List<T> GetDBSet<T>(object parameters = null)
+    public List<T> GetDBSet<T>(string selectedField = "",object parameters = null)
     {
         DBConnection1 = new SQLiteAccess(AppConfig.NameDBFile);
         return DBConnection1.GetDBSet<T>();
@@ -62,6 +66,30 @@ public class DBHandler
 
         return Enums.eStatus.FAILED;
     }
+    //public Enums.eStatus UpdatePassword(string password)
+    //{ 
+    //    switch (password)
+    //    {
+    //        case "שינוי סיסמה למערכת ימות המשיח":
+    //            AppConfig.UpdateEnv();
+    //            break;
+    //        case "שינוי שם משתמש לימות המשיח":
+    //            LoadDataFromDBToExcel<CallRoutingDTO>();
+    //            break;
+    //        case "שינוי מפתח יוטיוב":
+    //            LoadDataFromDBToExcel<ChannelExtension>();
+    //            break;
+    //    case "שינוי שם המפתח יוטיוב":
+    //        LoadDataFromDBToExcel<ChannelExtension>();
+    //        break;
+    //    default:
+    //            return Enums.eStatus.SUCCESS;
+
+
+    //    }
+
+    //    return Enums.eStatus.FAILED;
+    //}
 
     public Enums.eStatus ControlDataSync()
     {
@@ -109,7 +137,43 @@ public class DBHandler
        
        DBConnection1.UpdatelistData<T>(objectList.GetRange(0,TotalRowsCount));
         DBConnection1.InsetData<T>(objectList.GetRange(TotalRowsCount,objectList.Count-TotalRowsCount));
+        if (typeof(T).Name == "ChannelExtension")
+            UpdateChannelData(objectList);
       return excelDataAccess.DeleteExcelPackage<T>();
+    }
+
+    public async Task UpdateTable<T>(List<T> values, string propertyToComper) where T : class, new()
+    {
+        PropertyInfo properties = typeof(T).GetProperty(propertyToComper);
+
+        int count = DBConnection1.ExecuteScalarQueryInt(typeof(T).Name, "COUNT(*)");
+        if (count < values.Count)
+        {
+            List<T>valueInDB = DBConnection1.GetDBSet<T>();
+            List<T> NewValue = values.Where(x => !valueInDB.Any(y => properties.GetValue (y) ==properties.GetValue( x))).ToList();
+            DBConnection1.InsetData(NewValue);
+        }
+    }
+
+    public async Task UpdateCampainTable(List<Campaign> campainTable)
+    {
+        DBConnection1.RemoveData<Campaign>("");
+        UpdateTable(campainTable, "Campaign_Number");
+    }
+
+    public void UpdateChannelData<T>(List<T> objectList)
+    {
+        AppStaticParameter.channels.Clear();
+        AppStaticParameter.channels.AddRange(objectList as List<ChannelExtension>);
+    }
+    #endregion
+
+
+    #region Configuration file
+    public eStatus UpdatePassword(string nameProperty, string password)
+    {
+        AppConfig.UpdateEnv(nameProperty, password);
+        return eStatus.SUCCESS;
     }
 
     #endregion

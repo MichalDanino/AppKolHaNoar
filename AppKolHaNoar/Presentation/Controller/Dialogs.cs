@@ -1,21 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using DTO;
 using MediaProcessor.API;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
 using static DTO.Enums;
 
 namespace AppKolHaNoar.Presentation.Controller;
 public class Dialogs
 {
- 
+
     private static ContentDialog currentDialog;
     private static DBHandler updateDB = new DBHandler();
-   private static List<string> nameTable = new List<string>() { "עדכון הקמפיינים", "עדכון שלוחות", "עדכון ערוצים", "אישור" };
+    private static List<string> nameTable = new List<string>() { "עדכון הקמפיינים", "עדכון שלוחות", "עדכון ערוצים", "אישור" };
+   
     private static int timeOut;
     private TaskCompletionSource<string> dialogResultSource;
 
@@ -35,6 +38,7 @@ public class Dialogs
     {
         Dialogs dialogClass = new Dialogs();
         timeOut = -1;
+         currentDialog = new ContentDialog();
         switch (dialogType)
         {
             case eDialogType.OK:
@@ -44,14 +48,17 @@ public class Dialogs
                 dialogClass.AskDialog(xamlRoot, message);
                 break;
             case eDialogType.MultyButton:
-               dialogClass.DataChangeDialog(xamlRoot,message);
-                break;  
+               dialogClass.MultyButton(xamlRoot,message);
+                break;
+            case eDialogType.INPUT:
+                dialogClass.InputDialog(xamlRoot, message);
+                break;
             default:
                 break;
         }
         if (currentDialog != null)
         {
-            var result = currentDialog.ShowAsync();
+            var result =  currentDialog.ShowAsync();
             var cancellationTokenSource = new CancellationTokenSource();
 
             //var dialogTask = result.AsTask();
@@ -123,8 +130,50 @@ public class Dialogs
 
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pageXamlRoot"></param>
+    /// <param name="title"></param>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    public void InputDialog(XamlRoot pageXamlRoot, GenericMessage message)
+    {
+        currentDialog = new ContentDialog
+        {
+            Title = message.MessageTitle,
+            Content = new StackPanel
+            {
+                Children =
+        {
+            new TextBlock { Text = message.MessageContent },
+            new TextBlock { 
+                Text = message.subMessage , Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red)},
+             
+
+            new TextBox { Name = "InputTextBox", PlaceholderText = "Enter your input here" }
+        }
+            },
+            PrimaryButtonText = "Yes",
+            SecondaryButtonText = "No",
+            XamlRoot = pageXamlRoot
+        };
+        
+
+
+    }
+
+    public void MultyButton(XamlRoot pageXamlRoot, GenericMessage message)
+    {
+        if(message.MessageTitle.Contains("נתונים"))
+            DataChangeDialog(pageXamlRoot, message);
+        if(message.MessageTitle.Contains("סיסמאות"))
+            passwordChangeDialog(pageXamlRoot,message);
+
+    }
     public void DataChangeDialog(XamlRoot pageXamlRoot, GenericMessage message)
     {
+        
         StackPanel stackPanel = new StackPanel();
         //dialogResultSource = new TaskCompletionSource<string>();
 
@@ -148,12 +197,13 @@ public class Dialogs
             {
                 button.Click += (sender, e) =>
                 {
-                     dialogResultSource.SetResult(buttonText);
+                    dialogResultSource.SetResult(buttonText);
                     currentDialog.Hide();
                 };
             }
-            else { 
-            button.Click += (sender, e) => updateDB.ChangeDataInDB(buttonText);
+            else
+            {
+                button.Click += (sender, e) => updateDB.ChangeDataInDB(buttonText);
             }
 
             stackPanel.Children.Add(button);
@@ -161,6 +211,70 @@ public class Dialogs
 
 
     }
+    public void passwordChangeDialog(XamlRoot pageXamlRoot, GenericMessage message)
+    {
+            StackPanel stackPanel = new StackPanel();
+
+        currentDialog = new ContentDialog
+        {
+            Title = message.MessageTitle,
+            Content = stackPanel,
+            XamlRoot = pageXamlRoot,
+            PrimaryButtonText = "אישור", // מונע סגירה אוטומטית
+            CloseButtonText = ""
+        };
+
+        foreach (var buttonText in TranslationTable.passwords)
+        {
+            var button = new Button
+            {
+                Content = buttonText.Key,
+                Margin = new Thickness(5)
+            };
+
+
+
+            button.Click += async (sender, e) =>
+            {
+
+                GenericMessage message1 = new GenericMessage() { MessageContent = "הכנס ססיסמה ל" + buttonText.Key };
+                ChangePassword(currentDialog.XamlRoot, message1, buttonText.Value);
+            };
+            
+
+            stackPanel.Children.Add(button);
+        }
+
+
+    }
+
+
+    private async void ChangePassword(XamlRoot pageXamlRoot,GenericMessage message,string nameProperty)
+    {
+        currentDialog.Hide();
+        bool getNewPassword = false;
+        TextBox textBox = new TextBox();
+        do
+        {
+            ContentDialogResult result = await MainShowDialog(pageXamlRoot, message, eDialogType.INPUT);
+            if (result == ContentDialogResult.Primary)
+            {
+                StackPanel stackPanel = (StackPanel)currentDialog.Content;
+                textBox = stackPanel.Children.OfType<TextBox>().FirstOrDefault();
+
+                if (textBox != null && textBox.Text != "")
+                {
+                    getNewPassword = true;
+                }
+                message.subMessage = "לא התקבלה סיסמה";
+            }
+            else
+                break;
+        } while (!getNewPassword);
+        updateDB.UpdatePassword(nameProperty, textBox.Text);
+    }
+    
+     
 
     public static void ShowlistDialog(XamlRoot pageXamlRoot, List<string> message, string title = "")
     {
@@ -184,7 +298,7 @@ public class Dialogs
         //    var container = new ListViewItem { Content = stackPanel };
         //    return container;
         //});
-
+       
         // יצירת הדיאלוג
         ContentDialog dialog = new ContentDialog
         {

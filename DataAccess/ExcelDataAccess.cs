@@ -99,6 +99,7 @@ namespace DataAccess
                     s_ExcelRowNumber++;
 
                 }
+                package.Workbook.Protection.LockStructure = true;
                 worksheet.Protection.IsProtected = true;
                 worksheet.Protection.AllowSelectUnlockedCells = true;
                 worksheet.Protection.AllowInsertRows = true;

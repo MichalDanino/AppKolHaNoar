@@ -1,11 +1,14 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetEnv;
 using DTO;
+using MediaProcessor.API;
 
 namespace MediaProcessor
 {
@@ -20,11 +23,18 @@ namespace MediaProcessor
         public static string apiKeyYT = "";
         public static string apiProjectNameYT = "";
         public static string NameDBFile = "";
+        public static string YouTubeDLPath = "";
+        public static string ManagerPassword = "";
+
+        static byte[] iv = new byte[16];
+        public static Dictionary<string, string> env = new Dictionary<string, string>();
 
         /*static parameter */
         public static List<GenericMessage> listExceptions;
-        private static readonly string EnvFilePath = "secure.env";
-        private static readonly string EncryptionKey = "Your32CharSecureKeyHere!1234567890"; // יש להחליף במפתח מאובטח
+        private static readonly string EnvFilePath = $"C:\\Program Files\\KolHaNoar\\env.secure";
+
+        //ASC key
+        public static  string EncryptionKey = "KolHaNoarYaf592";
 
 
         /// <summary>
@@ -36,89 +46,142 @@ namespace MediaProcessor
             // The static constructor of the AppConfig class- executes only once 
             // when the AppConfig class is loaded for the first time, 
             // meaning when it is first accessed in the code.
-
-            string fileENV = MainDirectoryPath + @".env";
-            Env.Load(fileENV);
-            passwordYH = Env.GetString("PASSWORD");
-            UserNameYH = Env.GetString("USERNAME");
-            rootURL = Env.GetString("ROOTURL");
-            apiKeyYT = Env.GetString("YOUTUBE_API_KEY");
-            apiProjectNameYT = Env.GetString("ApplicationName");
+            Dictionary<string, string> config = ReadEnv();
+           // string fileENV = MainDirectoryPath + @".env";
+            //Env.Load(fileENV);
+            passwordYH = config["PASSWORD"];
+            UserNameYH = config["USERNAME"];
+            rootURL = config["ROOTURL"];
+            apiKeyYT = config["YOUTUBE_API_KEY"];
+            apiProjectNameYT = config["APPLICATION_NAME"];
+            YouTubeDLPath = config["YOUTUBE_DL_PATH"];
+            ManagerPassword = config["MANAGERPASSWORD"];
             listExceptions = new List<GenericMessage>();
             NameDBFile = rootURL + "my_database.db";
+            UpdateVideoSync();
         }
 
-        private static byte[] EncryptData(string plainText, string key)
+        public static string Decrypt(string key, string encryptedBase64)
         {
+            byte[] encryptedData = Convert.FromBase64String(encryptedBase64);
+            byte[] keyBytes = SHA256.HashData(Encoding.UTF8.GetBytes(key));
+
+            byte[] iv = new byte[16];
+            Array.Copy(encryptedData, 0, iv, 0, iv.Length); // שליפת ה-IV מהנתונים
+
             using (Aes aes = Aes.Create())
             {
-                aes.Key = Encoding.UTF8.GetBytes(key);
-                aes.GenerateIV();
+                aes.Key = keyBytes;
+                aes.IV = iv;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
 
-                using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
-                using (var ms = new MemoryStream())
+                using (var ms = new MemoryStream(encryptedData, iv.Length, encryptedData.Length - iv.Length))
+                using (var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                using (var reader = new StreamReader(cs))
                 {
-                    ms.Write(aes.IV, 0, aes.IV.Length);
-                    using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                    using (var writer = new StreamWriter(cs))
-                    {
-                        writer.Write(plainText);
-                    }
-                    return ms.ToArray();
+                    return reader.ReadToEnd(); // החזרת הנתונים המפוענחים
                 }
             }
+
         }
 
-        public static string ReadEnv(string key)
+        
+            //קוראת את המידע מהקובץ המוצפן, מפענחת אות ו בעזרת פונקצית הפיענוח
+        public static Dictionary<string,string> ReadEnv()
         {
             EnsureEnvFileExists(); // ווידוא שהקובץ קיים
 
-            byte[] encryptedData = File.ReadAllBytes(EnvFilePath);
-            string decryptedData = DecryptData(encryptedData, EncryptionKey);
-
-            foreach (string line in decryptedData.Split('\n'))
+            string[] lines = File.ReadAllLines(EnvFilePath);
+            
+            foreach (string line in lines)
             {
                 var parts = line.Split('=', 2);
-                if (parts.Length == 2 && parts[0].Trim() == key)
-                    return parts[1].Trim();
+                if (parts.Length == 2) 
+                {
+                    //env[parts[0].Trim()] = parts[1].Trim();
+                    string key = parts[0].Trim();
+                    string encryptedValue = parts[1].Trim();
+                    try
+                    {
+                        //byte[] encryptedData = Convert.FromBase64String(encryptedValue);
+                        string decryptedValue = Decrypt(EncryptionKey,encryptedValue );
+                        env[key] = decryptedValue;
+                    }
+                    catch (FormatException ex)
+                    {
+                        throw new Exception($"Failed to decode Base64 for key {key}", ex);
+                    }
+                }
             }
-
-            throw new KeyNotFoundException($"Key '{key}' not found in environment file.");
+            return env;
+            //throw new KeyNotFoundException($"Key '{key}' not found in environment file.");
         }
 
         public static void EnsureEnvFileExists()
         {
             if (!File.Exists(EnvFilePath))
             {
-                Console.WriteLine("Environment file not found. Creating a new one...");
-                WriteEnv("DUMMY_KEY", "DEFAULT_VALUE"); // יצירת קובץ עם ערך ברירת מחדל
+                throw new Exception("קובץ הקונפיגורציה לא קיים אנא הרץ את הסקריפט RUNME כדי ליצור את הקובץ.");
             }
         }
-
-        public static void WriteEnv(string key, string value)
+       
+        public static string Encrypt(string key, string plainText)
         {
-            string data = $"{key}={value}";
-            byte[] encryptedData = EncryptData(data, EncryptionKey);
-            File.WriteAllBytes(EnvFilePath, encryptedData);
-        }
+            byte[] keyBytes = SHA256.HashData(Encoding.UTF8.GetBytes(key)); // שימוש ישיר ב-SHA256
+            byte[] iv = new byte[16]; // יצירת IV רנדומלי
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(iv); // מילוי IV בערכים אקראיים
+            }
 
-        private static string DecryptData(byte[] encryptedData, string key)
-        {
             using (Aes aes = Aes.Create())
             {
-                aes.Key = Encoding.UTF8.GetBytes(key);
-                byte[] iv = new byte[aes.IV.Length];
-                Array.Copy(encryptedData, iv, iv.Length);
+                aes.Key = keyBytes;
+                aes.IV = iv;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
 
-                using (var decryptor = aes.CreateDecryptor(aes.Key, iv))
-                using (var ms = new MemoryStream(encryptedData, iv.Length, encryptedData.Length - iv.Length))
-                using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
-                using (var reader = new StreamReader(cs))
+                using (var ms = new MemoryStream())
                 {
-                    return reader.ReadToEnd();
+                    ms.Write(iv, 0, iv.Length); // כתיבת ה-IV לזרם
+                    using (var cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    using (var writer = new StreamWriter(cs))
+                    {
+                        writer.Write(plainText);
+                    }
+                    return Convert.ToBase64String(ms.ToArray()); // החזרת הנתונים המוצפנים
                 }
             }
         }
+        public static void UpdateEnv(string key, string newValue)
+        {
+            env[key] = newValue;
+
+            using (var writer = new StreamWriter(EnvFilePath, false))
+            {
+                foreach (var kvp in env)
+                {
+                    string encryptedValue = Encrypt(EncryptionKey, kvp.Value);
+                    writer.WriteLine($"{kvp.Key}={encryptedValue}");
+                }
+            }
+        }
+
+
+
+        /// <summary>
+        /// Update the dictionary with channels sync time
+        /// </summary>
+        public static void UpdateVideoSync()
+        {
+            DBHandler dB = new DBHandler();  
+            List<ChannelExtension> channels =  dB.GetDBSet<ChannelExtension>();
+         //   AppStaticParameter.VideoSyncTime = channels.ToDictionary(obj => obj.ChannelExtension_ChannelID, obj => obj.ChannelExtension_RunningTime);
+
+        }
+     
+      
 
     }
 }

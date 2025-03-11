@@ -11,6 +11,6 @@ public class GenericMessage
 
     public string MessageContent {  get; set; }
 
-    public string subMessageMessage { get; set; }
+    public string subMessage { get; set; }
 
 }

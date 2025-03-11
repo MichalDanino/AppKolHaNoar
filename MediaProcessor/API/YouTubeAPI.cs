@@ -95,7 +95,13 @@ public class YouTubeAPI
         await DownloadVideoAsAudio(channelID, playlistItemListResponse);
         return eStatus.SUCCESS;
     }
-    public static async Task durationVideo(string videoUrl, string youtubeDL)
+    /// <summary>
+    ///  Retrieves the duration of a video in minutes by executing yt-dlp (or youtube-dl) 
+    /// </summary>
+    /// <param name="videoUrl">The URL of the video from which the duration is to be retrieved</param>
+    /// <param name="youtubeDL">>The full path to the yt-dlp (or youtube-dl) executable file</param>
+    /// <returns></returns>
+    public static async Task<int> durationVideo(string videoUrl, string youtubeDL)
     {
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
@@ -115,13 +121,14 @@ public class YouTubeAPI
                 JObject videoData = JObject.Parse(jsonOutput);
 
                 // get video duration as second
-                int duration = videoData["duration"]?.Value<int>() ?? 0;
+                return videoData["duration"]?.Value<int>() ?? 0;
 
 
             }
         }
+        return 0;
     }
-    public static async Task<eStatus> DownloadVideoAsAudio(string channelId, SearchListResponse videoList)
+    public static  async Task<eStatus> DownloadVideoAsAudio(string channelId, SearchListResponse videoList)
     {
         eStatus status = eStatus.SUCCESS;
         AppConfig.exceptions.Clear();
@@ -132,18 +139,18 @@ public class YouTubeAPI
                 YoutubeDLPath = @"C:\yt-dlgANDffmpeg\yt-dlg\yt-dlp.exe",
                 FFmpegPath = @"C:\yt-dlgANDffmpeg\yt-dlg\ffmpeg.exe"
             };
-            foreach (var video in videoList.Items)
+            foreach (SearchResult video in videoList.Items)
             {
 
                 if (video.Id.Kind == "youtube#video") // verify that is video
                 {
+
                     string videoTitle = video.Snippet.Title.Replace(" ", "_");
                     string videoId = video.Id.VideoId;
                     string videoUrl = $"https://www.youtube.com/watch?v={videoId}";
-                    //string videoUrl = $"https://www.youtube.com/watch?v=5lGUEB3mkhc";
 
 
-                    // await durationVideo(videoUrl, youtubeDl.YoutubeDLPath);
+                    await durationVideo(videoUrl, youtubeDl.YoutubeDLPath);
                     // path folder output
                     string outputPath = Path.Combine(AppConfig.rootURL + "Downloads", $"{videoTitle}.%(ext)s");
 
@@ -160,16 +167,11 @@ public class YouTubeAPI
                     var result = youtubeDl.RunWithOptions(videoUrl, options).Result;
                     if (!result.Success)
                     {
-                        //AppConfig.exceptions.Add(new GenericMessage()
-                        //{
-                        //    MessageTitle = "נתקל בבעיה בהורדת הסרטון",
-                        //    MessageContent = "נתיב :" + videoUrl+ " " + result.ErrorOutput,
-                        //    subMessageMessage =  "אנא וודא שהאינטרנט מחובר או שהסרטון נפתח במחשב"
 
-                        //});
                         status = eStatus.NETWORKERROR;
                         return status;
                     }
+                     status =  await SaveVideoDetails(video, outputPath);
                 }
             }
             return status;
@@ -202,7 +204,8 @@ public class YouTubeAPI
         };
         // if video lass then 10 minets
         if (duration <= 10)
-        {;
+        {
+            ;
             videoDetails.VideoDetails_ExtensionMapping = channelExtension[0].ChannelExtension_Short;
         }
     }
@@ -252,28 +255,8 @@ public class YouTubeAPI
 
 
 
-        //string videoTitle = "hhh";
-        //string videoId = "12m5wAy5few";
-        //string videoUrl = $"https://www.youtube.com/watch?v={videoId}";
-        ////string videoUrl = $"https://www.youtube.com/watch?v=5lGUEB3mkhc";
-        ////string arguments = "--write-sub --sub-lang he --skip-download https://www.youtube.com/watch?v=5lGUEB3mkhc";
-
-
-        // await durationVideo(videoUrl, youtubeDl.YoutubeDLPath);
-        //// path folder output
-        //string outputPath = Path.Combine(AppConfig.rootURL + "Downloads", $"{videoTitle}.%(ext)s");
-
-        //// Setting download options including disabling SSL
-        //var options = new OptionSet
-        //{
-        //    Output = outputPath,
-        //    WriteAutoSubs = true,        // להוריד כתוביות
-        //    SubLangs = "he",               // שפה עברית
-        //    SkipDownload = true,          // אל תוריד את הסרטון, רק את הכתוביות
-        //    NoCheckCertificates = true
-        //};
         string videoTitle = "ggg";
-        string videoId = "5lGUEB3mkhc"; 
+        string videoId = "5lGUEB3mkhc";
         string videoUrl = $"https://www.youtube.com/watch?v={videoId}";
         //string videoUrl = $"https://www.youtube.com/watch?v=5lGUEB3mkhc";
 
@@ -310,9 +293,30 @@ public class YouTubeAPI
 
     }
 
+    public static async Task<eStatus> SaveVideoDetails(SearchResult video, string videoPath)
+    {
+        DBHandler dBHandler = new DBHandler();
+        List<ChannelExtension> channel = dBHandler.GetDBSet<ChannelExtension>("* WHERE ChannelExtension_ChannelID = @ID", new { ID = video.Id.VideoId });
+        if (channel != null)
+        {
+            int duration = await durationVideo($"https://www.youtube.com/watch?v={video.Id.VideoId}", AppConfig.YouTubeDLPath);
+            VideoDetails videoDetails = new VideoDetails()
+            {
+                VideoDetails_VideoID = video.Id.VideoId,
+                VideoDetails_ExtensionMapping = duration > 10 ? channel[0].ChannelExtension_Long : channel[0].ChannelExtension_Short,
+                VideoDetails_videoPath = videoPath
+
+            };
+
+            AppStaticParameter.videoDownLoad.Add(videoDetails);
+            return eStatus.SUCCESS; 
+        }
+        return eStatus.FAILED;
+
 
 
     }
+}
 
 
 

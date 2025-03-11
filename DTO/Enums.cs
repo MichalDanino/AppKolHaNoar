@@ -23,6 +23,7 @@ public static class Enums
         ASK,
         GETPARAMETER,
         MultyButton,
-        ERROR
+        ERROR,
+        INPUT
     }
 }

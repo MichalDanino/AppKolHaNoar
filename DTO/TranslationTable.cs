@@ -17,7 +17,7 @@ public class TranslationTable
 
             { "Campaign_ID", "מזהה" },
             { "Campaign_Number", "מס' קמפיין" },
-            { "Campaign_Channel", "מס' השלוחה (אם רוצים שירוץ בעת עדכון שלוחה מוסיימת,לכתוב כאן את השלוחה) ג" },
+            { "Campaign_Name", "שם הקמפיין" },
 
             { "ChannelExtension_ID", "מזהה" },
             { "ChannelExtension_ChannelID", "מזהה שלוחה" },
@@ -28,14 +28,11 @@ public class TranslationTable
             { "ChannelExtension_RunningTime", "שעה ויום לעדכון" }
         };
 
+    public static Dictionary<string, string> passwords = new Dictionary<string, string> {
+                    {"שינוי סיסמה למערכת ימות המשיח", "PASSWORD"},
+                    {"שינוי שם משתמש לימות המשיח","USERNAME"},
+                    { "שינוי מפתח יוטיוב","YOUTUBE_API_KEY"},
+                    { "שינוי שם המפתח יוטיוב","APPLICATION_NAME"} ,
+                    { "שינוי סיסמת מנהל לאפליקציה","MANAGERPASSWORD"} };
 
-    static Dictionary<string, string> campaingPropertyNamesInHebrew = new Dictionary<string, string>
-        {
-            
-   
-        };
-
-    static Dictionary<string, string> ChannelExtensionPropertyNamesInHebrew = new Dictionary<string, string>
-        {
-        };
 }

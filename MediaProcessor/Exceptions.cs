@@ -19,9 +19,11 @@ public  class Exceptions
         _error= eStatus.SUCCESS;
     }
 
-    public static async Task<eStatus> checkUploadFile(string statusResponse)
+    public static async Task<eStatus> checkUploadFile(string statusResponse,VideoDetails videoDatails )
     {
-        AppConfig.listExceptions.Clear();   
+             
+        _error = eStatus.SUCCESS;
+   
         List<string> uploadRespone = statusResponse.Split(',').Where(a => a.Contains("responseStatus") || a.Contains
                        ("success")).ToList();
 
@@ -30,6 +32,7 @@ public  class Exceptions
             _error = eStatus.NETWORKERROR;
             _exception.MessageTitle = _error.ToString();
             _exception.MessageContent = "שגיאה בהתחברות לשרת. בדוק חיבור רשת ";
+            
             AppConfig.listExceptions.Add(_exception);
 
         }
@@ -37,6 +40,7 @@ public  class Exceptions
         {
             _exception.MessageContent = "הבקשה נשלחה אך נכשלה. נסה שוב או בדוק את הקובץ";
             _exception.MessageTitle = _error.ToString();
+            _exception.subMessage = $"ווידאו {videoDatails.VideoDetails_videoPath} לא עלה למערכת (מהה סרטון: {videoDatails.VideoDetails_VideoID}  ";
             AppConfig.listExceptions.Add(_exception);
             _error = eStatus.ACCESERROR;
 

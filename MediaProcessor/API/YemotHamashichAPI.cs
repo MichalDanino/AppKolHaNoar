@@ -4,10 +4,12 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using DataAccess;
 using DotNetEnv;
 using DTO;
 using Newtonsoft.Json.Linq;
 using static DTO.Enums;
+using static MediaProcessor.AppStaticParameter;
 
 namespace MediaProcessor.API;
 public class YemotHamashichAPI
@@ -35,7 +37,7 @@ public class YemotHamashichAPI
     /// adding required metadata and fields, handling the file as a data stream, 
     /// and sending the request to the server while processing the received response.
     /// </summary>
-    public async Task  UplaodFiles()
+    public async Task<eStatus>  UplaodFiles()
     {
 
         using (httpClient = new HttpClient())
@@ -48,16 +50,16 @@ public class YemotHamashichAPI
                 string[] videoFiles = Directory.GetFiles(AppConfig.rootURL + @"Downloads");
                 List<string> uploadRespone = new List<string>();
                 
-                foreach (var videoFile in videoFiles)
+                foreach (var videoFile in AppStaticParameter.videoDownLoad)
                 {
                     int chunkSize = 50000000; // 1MB
-                    await foreach (var chunk in GetChunks(videoFile, chunkSize))
+                    await foreach (var chunk in GetChunks(videoFile.VideoDetails_videoPath, chunkSize))
                     {
 
-                        var formData = CreateFormData(chunk, videoFile);
+                        var formData = CreateFormData(chunk, videoFile.VideoDetails_videoPath);
                         string response = await Uploadfile(formData);
-                        status = await Exceptions.checkUploadFile(response);
-                        if (status == eStatus.ACCESERROR)
+                        status = await Exceptions.checkUploadFile(response, videoFile);
+                        if (status != eStatus.SUCCESS)
                         {
                             break;
                         }
@@ -72,7 +74,7 @@ public class YemotHamashichAPI
                 }
             }
             catch (Exception ex) { }
-            return;
+            return status;
         }
     }
 
@@ -83,7 +85,7 @@ public class YemotHamashichAPI
     public async Task<string> HandleRequest()
     {
         
-        var response = await httpClient.GetStringAsync(baseUrl + $"Login?username={AppConfig.UserNameYH}&password={AppConfig.passwordYH}");
+        var response =  httpClient.GetStringAsync(baseUrl + $"Login?username={AppConfig.UserNameYH}&password={AppConfig.passwordYH}").Result;
         timestamp = DateTime.Now;
         var jsonResponse = JObject.Parse(response);
 
@@ -193,19 +195,52 @@ public class YemotHamashichAPI
 
     }
 
-    //public async Task<string> GetCampaing()
-    //{ 
-    //    if(IsTimestampExpired())
-    //        token = await HandleRequest();
-    //   // var response = await httpClient.GetAsync(baseUrl + $"RunCampaign/?token={token}&templateId={campain}");
-    //   // return await response.Content.ReadAsStringAsync();
+    public async Task<List<Campaign>> GetCampaing()
+    {
+        List<Campaign> campaigns = new List<Campaign>();
+        if (IsTimestampExpired())
+           token = await HandleRequest();
 
-    //}
+        if(token != null) { 
+         var response =  httpClient.GetStringAsync(baseUrl + $"GetTemplates/?token={token}").Result;
+            requsetLegal(response);
+            if (globalStatus != eStatus.SUCCESS)
+                return campaigns;
+        JObject jsonResponse = JObject.Parse(response);
+        
+        campaigns = jsonResponse["templates"]
+           .Select(t => new Campaign
+           {
+               Campaign_Name = (string)t["description"],
+               Campaign_Number = t["templateId"].ToString()
+           })
+           .ToList();
+        DBHandler dB = new DBHandler();
+        await dB.UpdateCampainTable(campaigns);
+        return campaigns;
+        }
+        return campaigns;
+    }
 
     private bool IsTimestampExpired()
     {
         return timestamp.AddMinutes(30) <= DateTime.Now;
     }
+private void requsetLegal(string response)
+    {     
+        globalStatus = eStatus.SUCCESS;
 
+        string[] temp = response.Split(',');
+        foreach (string s in temp)
+        {
+            if(s.Contains("responseStatus"))
+            {
+                if (!s.Contains("OK"))
+                    globalStatus = eStatus.ACCESERROR;
+                break;
+                   
+            }
+        }
+    }
 }
 

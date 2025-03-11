@@ -8,10 +8,12 @@ namespace DTO;
 public class VideoDetails
 {
     public int VideoDetails_ID;
+
     public string VideoDetails_VideoID;
 
     public int VideoDetails_Duration;
 
    public string VideoDetails_ExtensionMapping;
+   public string VideoDetails_videoPath;
 
 }

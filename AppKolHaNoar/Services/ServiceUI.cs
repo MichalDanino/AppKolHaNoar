@@ -25,15 +25,16 @@ public static DBHandler DB = new DBHandler();
 public static string GlobalMessageDialog = "האם אתה מאשר?";
 public static XamlRoot MainPageXamlRoot;
 GenericMessage message = new GenericMessage();
-/// <summary>
-/// Checks if a new video has been uploaded to a specific YouTube channel.
-/// If a new video is found and the user wants to update, the function downloads the video, 
-/// extracts the audio, and uploads it to the phone extension system.
-/// </summary>
-/// <param name="parentXamlRoot">The ID of the YouTube channel to check </param>
-/// <param name="channelID"></param>
-/// <returns></returns>
-public async Task UpdateExtension(string channelID)
+
+    /// <summary>
+    /// Checks if a new video has been uploaded to a specific YouTube channel.
+    /// If a new video is found and the user wants to update, the function downloads the video, 
+    /// extracts the audio, and uploads it to the phone extension system.
+    /// </summary>
+    /// <param name="parentXamlRoot">The ID of the YouTube channel to check </param>
+    /// <param name="channelID"></param>
+    /// <returns></returns>
+    public async Task UpdateExtension(string channelID)
 {
     eStatus status = eStatus.SUCCESS;
     status = youTubeMediaHandler.CheckForNewVideos(channelID);
@@ -95,17 +96,17 @@ public static async Task ShowExceptionWithList()
     await ExceptionMessage.ShowExceptionWithList(MainPageXamlRoot);
 }
 
-public bool RunCampaign(Campaign campaign, XamlRoot xamlRoot)
+public bool RunCampaign(Campaign campaign)
 {
 
-    if (campaign != null)
+    if (campaign != null&& campaign.Campaign_Name!="")
     {
-        yemotHamashichAPI.RunCampaign("1418810");
+        yemotHamashichAPI.RunCampaign(campaign.Campaign_Number);
     }
     else
     {
         message = new GenericMessage() { MessageTitle = "הפעלת קמפיין", MessageContent = "לא נבחר קמפיין להרצה" };
-        Dialogs.MainShowDialog(xamlRoot, message, eDialogType.OK);
+        Dialogs.MainShowDialog(MainPageXamlRoot, message, eDialogType.OK);
         return false;
     }
     return true;
@@ -118,12 +119,17 @@ public bool InsertData<T>(List<T> entityList) where T : class
 
 public List<T> GetDBSet<T>(object parameters = null)
 {
-    return DB.GetDBSet<T>(parameters);
+    return DB.GetDBSet<T>("",parameters);
 }
+
+    public eStatus UpdatePassword(string namePassword, string password)
+    {
+       return DB.UpdatePassword(namePassword,password);
+    }
 
 public async Task<bool> ChangeDB()
 {
-    message = new GenericMessage() { MessageTitle = "עדכון נתונים", MessageContent = "בעת לחיצה על הכפתור יפתח אקסל, אנא מלא את הנתונים, שמור את האקסל ולחץ על אישור לעדכון הנתונים" };
+    message = new GenericMessage() { MessageTitle = "עדכון/הוספת נתונים", MessageContent = "בעת לחיצה על הכפתור יפתח אקסל, אנא מלא את הנתונים, שמור את האקסל ולחץ על אישור לעדכון הנתונים" };
 
     ContentDialogResult result = await Dialogs.MainShowDialog(MainPageXamlRoot, message, eDialogType.MultyButton);
 
@@ -131,7 +137,6 @@ public async Task<bool> ChangeDB()
     {
         if (DB.ControlDataSync() == eStatus.SUCCESS)
         {
-            // ViewModels.MainViewModels mainViewModels = new ViewModels.MainViewModels();
 
             message = new GenericMessage() { MessageContent = " העדכון בוצע בהצלחה" };
         }
@@ -146,6 +151,13 @@ public async Task<bool> ChangeDB()
     return true;
 
 }
+
+public List<Campaign> GetCampaignsTable()
+    {
+       return   yemotHamashichAPI.GetCampaing().Result;
+    }
+
+
 public void GetMainPageXamlRoot(XamlRoot xamlRoot)
 {
     MainPageXamlRoot = xamlRoot;

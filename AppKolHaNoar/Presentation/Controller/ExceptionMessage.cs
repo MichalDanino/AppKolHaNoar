@@ -21,7 +21,7 @@ public static class ExceptionMessage
         // כותרת מעוצבת
         var titleBlock = new TextBlock
         {
-            Text = "New Update Available!",
+            Text = message.MessageTitle,
             FontSize = 20,
             //FontWeight = Windows.UI.Text.FontWeight,
             Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(30, 220, 37, 5)),
@@ -33,7 +33,7 @@ public static class ExceptionMessage
         var icon = new FontIcon { Glyph = "🔔", FontSize = 32, Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(30,220,37,5)) };
         var messageBlock = new TextBlock
         {
-            Text = "A new version is available. Would you like to update now?",
+            Text = message.MessageContent,
             FontSize = 16,
             Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(225,0,0,0)),
             TextAlignment = TextAlignment.Center,
@@ -105,7 +105,7 @@ public static class ExceptionMessage
         * Each error message is placed on a separate line, 
         * making it easier to read in logs.
         */
-        exception.subMessageMessage = string.Join(Environment.NewLine, MediaProcessor.AppConfig.listExceptions.Select(item => item.MessageContent));
+        exception.subMessage = string.Join(Environment.NewLine, MediaProcessor.AppConfig.listExceptions.Select(item => item.MessageContent));
         await ShowErrorDialog(xamlRoot, exception);
         MediaProcessor.AppConfig.listExceptions.Clear();    
     }

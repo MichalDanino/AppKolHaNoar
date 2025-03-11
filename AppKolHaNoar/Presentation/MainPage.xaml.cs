@@ -22,24 +22,21 @@ public sealed partial class MainPage : Page
     public ServiceUI process;
     public List<ChannelExtension> channelExtensions;
     public ViewModels.MainViewModels ViewModel;
+
     public MainPage()
     {
         process = new ServiceUI();
-        List<Campaign> dd = new List<Campaign>()
-       { new Campaign()
-        {
-            Campaign_Number ="812"
-        }};
-        process.InsertData<Campaign>(dd);
+       // List<Campaign> dd = new List<Campaign>()
+       //{ new Campaign()
+       // {
+       //     Campaign_Number ="812"
+       // }};
+       // process.InsertData<Campaign>(dd);
 
         this.InitializeComponent();
         ViewModel = new ViewModels.MainViewModels();    
         this.Loaded += MainPage_Loaded;
-        //process.GetMainPageXamlRoot(this.XamlRoot);   
-       // comboBoxChannel.DataContext = ViewModel;
-       // BBb.DataContext = ViewModel;
-       // ChangeDB.DataContext = ViewModel;
-        FillComboBox();
+       FillComboBox();
 
         YoutubeAPI = new YouTubeMediaHandler();  
 
@@ -48,8 +45,13 @@ public sealed partial class MainPage : Page
     {
         process.GetMainPageXamlRoot(this.XamlRoot);
         autoSuggestBox.DataContext = ViewModel;
-        BBb.DataContext = ViewModel;
+        RunUpdating.DataContext = ViewModel;
         ChangeDB.DataContext = ViewModel;
+        RanCampaing.DataContext = ViewModel;
+        Password.DataContext = ViewModel;
+        ViewModel.AutoSuggestVM.isGetDataFromService();
+        
+
     }
     public static YemotHamashichAPI s_YEMOTHAMASHICH = new YemotHamashichAPI();
 
@@ -112,36 +114,50 @@ public sealed partial class MainPage : Page
     {
        comboBoxChannel.ItemsSource = ViewModel.Channels;
         comboBoxChannel.DisplayMemberPath = "ChannelExtension_Name";
-
-     //comboBoxCampaign.ItemsSource = ViewModel.Campaigns;  
-       // comboBoxCampaign.DisplayMemberPath = "Campaign_Number";
+        autoSuggestBox.ItemsSource = ViewModel.AutoSuggestVM.Items;
+       
+        autoSuggestBox.DisplayMemberPath = "Campaign_Name";
     }
    
 
-    private void RunCampaign(object sender, RoutedEventArgs e)
-    {
-        // var r = ViewModel.
-        Campaign channelToCheck = null;// comboBoxCampaign.SelectedItem as Campaign;
-        process.RunCampaign(channelToCheck,this.XamlRoot);
-    }
+
 
 
     private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+      if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
             ViewModel.AutoSuggestVM.GetFilteredItems(sender.Text);
+            if (ViewModel.AutoSuggestVM.Items.Count > 1)
+            {
+                sender.IsSuggestionListOpen = ViewModel.AutoSuggestVM.Items.Any();
+            }
+            else
+            {
+                autoSuggestBox.IsSuggestionListOpen = false;
+
+            }
+
         }
     }
 
     private void AutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
     {
-        ViewModel.AutoSuggestVM.SelectedText = args.SelectedItem.ToString();
+        if (args.SelectedItem is Campaign selectedCampaign)
+        {
+           ViewModel.AutoSuggestVM.SelectedText.Campaign_Name = selectedCampaign.Campaign_Name;
+           ViewModel.AutoSuggestVM.SelectedText.Campaign_Number = selectedCampaign.Campaign_Number;
+            autoSuggestBox.IsSuggestionListOpen = false;
+
+        }
     }
 
     private void AutoSuggestBox_LostFocus(object sender, RoutedEventArgs e)
     {
         ViewModel.AutoSuggestVM.ValidateSelection();
+        //autoSuggestBox.IsSuggestionListOpen = false;
+        autoSuggestBox.Text = ViewModel.AutoSuggestVM.SelectedText.Campaign_Name;
+
     }
 
 

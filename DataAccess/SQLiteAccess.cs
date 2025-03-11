@@ -12,7 +12,7 @@ using System.Reflection;
 
 
 namespace DataAccess;
-public class SQLiteAccess :DBConnection
+public class SQLiteAccess : DBConnection
 {
     private readonly string _connectionString;
     private readonly string _databaseFilePath;
@@ -45,7 +45,7 @@ public class SQLiteAccess :DBConnection
     // הוספת נתונים
     public override bool InsetData<T>(List<T> entity) where T : class
     {
-       var typeClass = typeof(T);
+        var typeClass = typeof(T);
         using (var connection = GetConnection())
         {
             string tableName = typeClass.Name;
@@ -81,14 +81,14 @@ public class SQLiteAccess :DBConnection
         return true;
     }
 
-    public override bool UpdateData<T>( T entity)
+    public override bool UpdateData<T>(T entity)
     {
         object uniqueValue = "";
         using (var connection = GetConnection())
         {
-            string tableName = typeof(T).Name;  
+            string tableName = typeof(T).Name;
             connection.Open();
-            
+
             string uniqueValueName = typeof(T).GetProperties().FirstOrDefault(p => p.Name.Contains("_ID"))?.Name.ToString() ?? string.Empty;
             var property = typeof(T).GetProperty(uniqueValueName);
             if (property == null)
@@ -124,11 +124,11 @@ public class SQLiteAccess :DBConnection
     {
         using (var connection = GetConnection())
         {
-            string tableName = typeof (T).Name;
-            string setClause = typeof(T).GetProperties().FirstOrDefault(p => p.Name.Contains("_ID"))?.Name.ToString()?? string.Empty;
+            string tableName = typeof(T).Name;
+            string setClause = typeof(T).GetProperties().FirstOrDefault(p => p.Name.Contains("_ID"))?.Name.ToString() ?? string.Empty;
             connection.Open();
-            var query = $"DELETE FROM {tableName} WHERE {setClause}= @condition";
-             connection.Execute(query);
+            var query =  condition!= ""? $"DELETE FROM {tableName} WHERE {setClause}= @condition" : $"DELETE FROM {tableName}";
+            connection.Execute(query);
             return true;
         }
         return false;
@@ -137,11 +137,11 @@ public class SQLiteAccess :DBConnection
 
     protected override string GetFilePath<T>() where T : class
     {
-       //not need in this class
+        //not need in this class
         return null;
     }
     // Select Operation
-    public  List<T> GetDBSet<T>(string selectedField="", object parameters = null)
+    public List<T> GetDBSet<T>(string selectedField = "", object parameters = null)
     {
         try
         {
@@ -161,14 +161,39 @@ public class SQLiteAccess :DBConnection
 
     public bool UpdatelistData<T>(List<T> values) where T : class
     {
-        bool status  = false;
+        bool status = false;
         foreach (var item in values)
         {
-           status= UpdateData<T>(item);    
+            status = UpdateData<T>(item);
         }
-        return status;  
+        return status;
     }
-    
 
-    
+    /// <summary>
+    /// The ExecuteScalarQuery function runs a SQL query on an SQLite database and returns a single value. 
+    /// It connects to the database, runs the query, and retrieves the result. This is useful for getting 
+    /// simple values like the number of rows in a table.
+    /// </summary>
+    /// <param name="tableName">name table</param>
+    /// <param name="CurrectQuery">the query</param>
+    /// <returns></returns>
+
+    public int ExecuteScalarQueryInt(string tableName, string CurrectQuery)
+    {
+        try
+        {
+            using (var connection = GetConnection())
+            {
+                string query = $"SELECT {CurrectQuery} FROM {tableName}";
+
+                connection.Open();
+                return connection.Query<int>(query).FirstOrDefault();
+
+            }
+        }
+        catch
+        {
+            return 0;
+        }
+    }
 }
