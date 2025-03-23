@@ -12,7 +12,7 @@ public class SubDialogManager
 {
 
         private static ContentDialog subCurrentDialog;
-        private static DBHandler updateDB = new DBHandler();
+        private static MultiSourceDataService updateDB = new MultiSourceDataService();
       
         private static int timeOut;
         private TaskCompletionSource<string> dialogResultSource;

@@ -13,6 +13,7 @@ using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using static OfficeOpenXml.ExcelErrorValue;
 using static DTO.TranslationTable;
+using System.Globalization;
 
 namespace DataAccess
 {
@@ -41,7 +42,6 @@ namespace DataAccess
             bool uniqueNamecell = false;
             // Check if the file exists, if not create new file
             bool fileExists = File.Exists(filePath);
-
             ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
 
@@ -204,6 +204,7 @@ namespace DataAccess
         {
             string fileName = typeof(T).Name.Replace("DTO", "");
             string filePath = _databaseFilePath + fileName + ".xlsx";
+
             return filePath;
         }
 
@@ -322,7 +323,7 @@ namespace DataAccess
             return null;
         }
 
-        public Enums.eStatus DeleteExcelPackage<T>() where T : class, new()
+        public Enums.eStatus DeleteExcelPackage<T>() where T : class
         {
             string filePath = GetFilePath<T>();
 
@@ -343,6 +344,90 @@ namespace DataAccess
             {
                 process.Kill(); // סוגר את התהליך של Excel
             }
+        }
+
+        /// <summary>
+        /// For ChannelExtension class
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public bool ApplyDataValidation<T>(string Day,String Houres) where T : class
+        {
+            string filePath = GetFilePath<T>();
+            if (!File.Exists(filePath))
+                return false;
+
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+                if (worksheet.Dimension == null)
+                    return false;
+
+                Dictionary<string, int> columnIndexes = new Dictionary<string, int>();
+
+                // איתור עמודות לפי כותרות
+                int totalColumns = worksheet.Dimension.Columns;
+                for (int col = 1; col <= totalColumns; col++)
+                {
+                    string header = worksheet.Cells[1, col].Text;
+                    columnIndexes[header] = col;
+                }
+
+                int lastRow = worksheet.Dimension.Rows;
+                int startRow = 2;
+                int endRow = Math.Max(lastRow, startRow);
+                // 🎯 **הוספת רשימה נפתחת לעמודה "יום בשבוע"**
+                if (columnIndexes.TryGetValue(Day, out int dayColumn))
+                {
+                    var daysOfWeek = new[] {" ","ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת" };
+                    
+                    var validation = worksheet.DataValidations.AddListValidation(
+                        worksheet.Cells[startRow, dayColumn, endRow, dayColumn].Address);
+                    foreach (var day in daysOfWeek)
+                    {
+                        validation.Formula.Values.Add(day);
+                    }
+
+                    validation.AllowBlank = false;
+
+                    // בנוסף, אפשר להוסיף הודעת שגיאה במקרה של ערך לא חוקי
+                    validation.ErrorTitle = "ערך לא חוקי";
+                    validation.Error = "עליך לבחור יום מהרשימה.";
+                    validation.ShowErrorMessage = true;
+                }
+
+                // 🎯 **הוספת הגבלת שעה לעמודה "שעת התחלה"**
+                if (columnIndexes.TryGetValue(Houres, out int timeColumn))
+                {
+                    for (int row = 2; row <= lastRow; row++) // עובר על כל השורות בעמודה
+                    {
+                        if (DateTime.TryParse(worksheet.Cells[row, timeColumn].Text, out DateTime parsedTime))
+                        {
+                            worksheet.Cells[row, timeColumn].Value = parsedTime.TimeOfDay.TotalDays; // שומר את הערך כמספר יומי
+                        }
+                        else
+                        {
+                            worksheet.Cells[row, timeColumn].Value = new DateTime(1, 1, 1, 0, 0, 0).TimeOfDay.TotalDays;
+                        }
+                    }
+
+                    // קובע פורמט תצוגה של שעה בלבד (ללא תאריך)
+                    worksheet.Column(timeColumn).Style.Numberformat.Format = "hh:mm";
+
+                    // הוספת הולידציה לחסימת טקסט וערכים לא חוקיים
+                    var timeValidation = worksheet.DataValidations.AddCustomValidation(worksheet.Cells[2, timeColumn, lastRow, timeColumn].Address);
+                    timeValidation.Formula.ExcelFormula = $"AND(ISNUMBER({worksheet.Cells[2, timeColumn].Address}), {worksheet.Cells[2, timeColumn].Address}=TIME(HOUR({worksheet.Cells[2, timeColumn].Address}), MINUTE({worksheet.Cells[2, timeColumn].Address}), 0))";
+                    timeValidation.ShowErrorMessage = true;
+                    timeValidation.ErrorTitle = "שגיאה";
+                    timeValidation.Error = "נא להזין שעה בפורמט תקין (hh:mm)";
+
+                }
+
+                package.Save();
+            }
+            return true;
         }
 
     }

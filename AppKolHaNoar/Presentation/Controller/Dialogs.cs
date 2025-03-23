@@ -16,11 +16,12 @@ public class Dialogs
 {
 
     private static ContentDialog currentDialog;
-    private static DBHandler updateDB = new DBHandler();
-    private static List<string> nameTable = new List<string>() { "עדכון הקמפיינים", "עדכון שלוחות", "עדכון ערוצים", "אישור" };
+    private static ProgressBar progressBar;
+    private static MultiSourceDataService updateDB = new MultiSourceDataService();
+    private static List<string> nameTable = new List<string>() { "עדכון הקמפיינים", "עדכון שלוחות", "עדכון ערוצים" };
    
     private static int timeOut;
-    private TaskCompletionSource<string> dialogResultSource;
+    private TaskCompletionSource<string> dialogResultSource = new TaskCompletionSource<string>();
 
     /// <summary>
     /// Displays a content dialog with a specified timeout. If the dialog is not interacted with before the timeout,
@@ -39,6 +40,8 @@ public class Dialogs
         Dialogs dialogClass = new Dialogs();
         timeOut = -1;
          currentDialog = new ContentDialog();
+        progressBar = new ProgressBar();
+        ProgressBarDialog();
         switch (dialogType)
         {
             case eDialogType.OK:
@@ -185,6 +188,7 @@ public class Dialogs
             PrimaryButtonText = "אישור", // מונע סגירה אוטומטית
             CloseButtonText = ""
         };
+        stackPanel.Children.Add(progressBar);
 
         foreach (var buttonText in nameTable)
         {
@@ -193,18 +197,22 @@ public class Dialogs
                 Content = buttonText,
                 Margin = new Thickness(5)
             };
-            if (buttonText == "אישור")
-            {
-                button.Click += (sender, e) =>
+         
+               
+           
+                button.Click += async (sender, e) =>
                 {
-                    dialogResultSource.SetResult(buttonText);
-                    currentDialog.Hide();
+
+                    progressBar.Visibility = Visibility.Visible;
+                    await Task.Run(() =>
+                    {
+                        updateDB.ChangeDataInDB(buttonText);
+                    });
+                    progressBar.Visibility = Visibility.Collapsed;
+
+
                 };
-            }
-            else
-            {
-                button.Click += (sender, e) => updateDB.ChangeDataInDB(buttonText);
-            }
+          
 
             stackPanel.Children.Add(button);
         }
@@ -311,5 +319,16 @@ public class Dialogs
 
 
         //return await dialog.ShowAsync();
+    }
+    public static void ProgressBarDialog()
+    {
+         progressBar = new ProgressBar
+        {
+            Minimum = 0,
+            Maximum = 100,
+            Value = 0,
+            IsIndeterminate = true, // הצגת ProgressBar ללא צורך במעקב אחר ערכים
+            Visibility = Visibility.Collapsed // בהתחלה נסתר
+        };
     }
 }

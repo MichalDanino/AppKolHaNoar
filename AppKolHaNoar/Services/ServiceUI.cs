@@ -21,7 +21,7 @@ public class ServiceUI : ContentDialog
 
 public static YouTubeMediaHandler youTubeMediaHandler = new YouTubeMediaHandler();
 public static YemotHamashichAPI yemotHamashichAPI = new YemotHamashichAPI();
-public static DBHandler DB = new DBHandler();
+public static MultiSourceDataService DB = new MultiSourceDataService();
 public static string GlobalMessageDialog = "האם אתה מאשר?";
 public static XamlRoot MainPageXamlRoot;
 GenericMessage message = new GenericMessage();
@@ -41,7 +41,7 @@ GenericMessage message = new GenericMessage();
 
     if (status == eStatus.SUCCESS)
     {
-        status = youTubeMediaHandler.DownLoadVideoAsAudio(channelID);
+       // status = youTubeMediaHandler.DownLoadVideoAsAudio(channelID);
 
         if (status == eStatus.SUCCESS)
         {
@@ -119,7 +119,7 @@ public bool InsertData<T>(List<T> entityList) where T : class
 
 public List<T> GetDBSet<T>(object parameters = null)
 {
-    return DB.GetDBSet<T>("",parameters);
+    return DB.GetDBSet<T>("","",parameters);
 }
 
     public eStatus UpdatePassword(string namePassword, string password)

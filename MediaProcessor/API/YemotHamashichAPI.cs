@@ -44,25 +44,31 @@ public class YemotHamashichAPI
         {
             try
             {
+                status = eStatus.SUCCESS;
                 //get token
                 token = await HandleRequest();
                 //patch to upload files
                 string[] videoFiles = Directory.GetFiles(AppConfig.rootURL + @"Downloads");
                 List<string> uploadRespone = new List<string>();
-                
-                foreach (var videoFile in AppStaticParameter.videoDownLoad)
+                VideoDetails videoDetails = new VideoDetails();
+                foreach (var videoFile in videoFiles)
                 {
-                    int chunkSize = 50000000; // 1MB
-                    await foreach (var chunk in GetChunks(videoFile.VideoDetails_videoPath, chunkSize))
+                    if (videoFile.Contains(".mp3"))
                     {
-
-                        var formData = CreateFormData(chunk, videoFile.VideoDetails_videoPath);
-                        string response = await Uploadfile(formData);
-                        status = await Exceptions.checkUploadFile(response, videoFile);
-                        if (status != eStatus.SUCCESS)
+                        int chunkSize = 50000000; // 1MB
+                        await foreach (var chunk in GetChunks(videoFile, chunkSize))
                         {
-                            break;
+
+                            var formData = CreateFormData(chunk, videoFile);
+                            string response = await Uploadfile(formData);
+                            status = await Exceptions.checkUploadFile(response, videoDetails);
+                            if (status != eStatus.SUCCESS)
+                            {
+                                break;
+                            }
                         }
+                        Directory.Delete(videoFile, true);
+
                     }
                     // if there is problem with the internet connection.stop all uploading
                     if (status == eStatus.NETWORKERROR)
@@ -70,7 +76,6 @@ public class YemotHamashichAPI
                         break;
                     }
 
-                    Directory.Delete(AppConfig.rootURL + @"Downloads\"+ videoFile, true);
                 }
             }
             catch (Exception ex) { }
@@ -206,7 +211,10 @@ public class YemotHamashichAPI
             requsetLegal(response);
             if (globalStatus != eStatus.SUCCESS)
                 return campaigns;
-        JObject jsonResponse = JObject.Parse(response);
+
+            //Extracting data from JSON
+
+            JObject jsonResponse = JObject.Parse(response);
         
         campaigns = jsonResponse["templates"]
            .Select(t => new Campaign
@@ -215,7 +223,8 @@ public class YemotHamashichAPI
                Campaign_Number = t["templateId"].ToString()
            })
            .ToList();
-        DBHandler dB = new DBHandler();
+            //Enter to the DB
+        MultiSourceDataService dB = new MultiSourceDataService();
         await dB.UpdateCampainTable(campaigns);
         return campaigns;
         }

@@ -26,17 +26,38 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         process = new ServiceUI();
-       // List<Campaign> dd = new List<Campaign>()
-       //{ new Campaign()
-       // {
-       //     Campaign_Number ="812"
-       // }};
-       // process.InsertData<Campaign>(dd);
+        List<ChannelExtension> dd = new List<ChannelExtension>()
+       { 
+            new ChannelExtension()
+        {
+            ChannelExtension_ChannelID ="@Kol-Halashon",
+            ChannelExtension_Name = "fff",
+            ChannelExtension_Short = "content",
+            ChannelExtension_Long= "content",
+            ChannelExtension_Campaign = "1418810",
+            ChannelExtension_RunningTime = "11:34",
+            ChannelExtension_RunningDay = "שלישי"
+
+
+        },
+            new ChannelExtension()
+        {
+            ChannelExtension_ChannelID ="@Kol-Halashon",
+            ChannelExtension_Name = "fff",
+            ChannelExtension_Short = "content",
+            ChannelExtension_Long= "content",
+            ChannelExtension_Campaign = "1418810",
+            ChannelExtension_RunningTime = "11:34",
+            ChannelExtension_RunningDay = "רביעי"
+
+
+        }};
+        process.InsertData<ChannelExtension>(dd);
 
         this.InitializeComponent();
         ViewModel = new ViewModels.MainViewModels();    
         this.Loaded += MainPage_Loaded;
-       FillComboBox();
+      // FillComboBox();
 
         YoutubeAPI = new YouTubeMediaHandler();  
 
@@ -47,10 +68,14 @@ public sealed partial class MainPage : Page
         autoSuggestBox.DataContext = ViewModel;
         RunUpdating.DataContext = ViewModel;
         ChangeDB.DataContext = ViewModel;
-        RanCampaing.DataContext = ViewModel;
+        //  RanCampaing.DataContext = ViewModel;
+        ComboBoxDay.DataContext = ViewModel;
+        TextDay.DataContext = ViewModel;
         Password.DataContext = ViewModel;
         ViewModel.AutoSuggestVM.isGetDataFromService();
-        
+        comboBoxChannel.DataContext = ViewModel;
+        progressBar.DataContext = ViewModel;
+        WaitText.DataContext = ViewModel;   
 
     }
     public static YemotHamashichAPI s_YEMOTHAMASHICH = new YemotHamashichAPI();
@@ -112,11 +137,11 @@ public sealed partial class MainPage : Page
 
     internal void FillComboBox()
     {
-       comboBoxChannel.ItemsSource = ViewModel.Channels;
-        comboBoxChannel.DisplayMemberPath = "ChannelExtension_Name";
-        autoSuggestBox.ItemsSource = ViewModel.AutoSuggestVM.Items;
+      // comboBoxChannel.ItemsSource = ViewModel.Channels;
+       // comboBoxChannel.DisplayMemberPath = "ChannelExtension_Name";
+       // autoSuggestBox.ItemsSource = ViewModel.AutoSuggestVM.Items;
        
-        autoSuggestBox.DisplayMemberPath = "Campaign_Name";
+       // autoSuggestBox.DisplayMemberPath = "Campaign_Name";
     }
    
 

@@ -20,13 +20,15 @@ using Newtonsoft.Json.Linq;
 using YoutubeDLSharp;
 using YoutubeDLSharp.Options;
 using static System.Net.WebRequestMethods;
+using Sprache;
+using System.Text.RegularExpressions;
 
 namespace MediaProcessor.API;
 public class YouTubeAPI
 {
 
     static int MaxVidowToDownload;
-    public static DBHandler bHandler;
+    public static MultiSourceDataService bHandler;
     /* צריך להוסיפ כאן עדכון נתוני הווידיאו ב DB*/
     public YouTubeAPI()
     {
@@ -53,7 +55,7 @@ public class YouTubeAPI
             var searchRequest = youtubeService.Search.List("snippet");
             searchRequest.ChannelId = ChannelID;
             searchRequest.Order = SearchResource.ListRequest.OrderEnum.Date; // לפי תאריך פרסום
-            searchRequest.MaxResults = 5;
+            searchRequest.MaxResults = 1;
             searchRequest.Type = "video";
             SearchListResponse channelResponse = searchRequest.ExecuteAsync().Result;
 
@@ -116,7 +118,7 @@ public class YouTubeAPI
         {
             using (StreamReader reader = process.StandardOutput)
             {
-                string jsonOutput = await reader.ReadToEndAsync();
+                string jsonOutput = reader.ReadToEndAsync().Result;
                 Console.WriteLine(jsonOutput);
                 JObject videoData = JObject.Parse(jsonOutput);
 
@@ -144,13 +146,13 @@ public class YouTubeAPI
 
                 if (video.Id.Kind == "youtube#video") // verify that is video
                 {
-
-                    string videoTitle = video.Snippet.Title.Replace(" ", "_");
-                    string videoId = video.Id.VideoId;
+                    video.Snippet.Title = Regex.Replace(video.Snippet.Title, @"[\uD800-\uDBFF][\uDC00-\uDFFF]|[\\\/|:*?""<>]", "").Replace(" ", "_");
+                    string videoTitle = video.Snippet.Title;
+                    string videoId = /*video.Id.VideoId*/"T5NxX7ZG22Y";
                     string videoUrl = $"https://www.youtube.com/watch?v={videoId}";
 
 
-                    await durationVideo(videoUrl, youtubeDl.YoutubeDLPath);
+                    //await durationVideo(videoUrl, youtubeDl.YoutubeDLPath);
                     // path folder output
                     string outputPath = Path.Combine(AppConfig.rootURL + "Downloads", $"{videoTitle}.%(ext)s");
 
@@ -164,13 +166,13 @@ public class YouTubeAPI
                     };
 
                     // Audio download only
-                    var result = youtubeDl.RunWithOptions(videoUrl, options).Result;
-                    if (!result.Success)
-                    {
+                   // var result = youtubeDl.RunWithOptions(videoUrl, options).Result;
+                    //if (!result.Success)
+                    //{
 
-                        status = eStatus.NETWORKERROR;
-                        return status;
-                    }
+                    //    status = eStatus.NETWORKERROR;
+                    //    return status;
+                    //}
                      status =  await SaveVideoDetails(video, outputPath);
                 }
             }
@@ -193,7 +195,7 @@ public class YouTubeAPI
         SQLiteAccess sQLiteAccess = new SQLiteAccess(AppConfig.NameDBFile);
 
         //Retrieve the channel entity along with its linked call extension information
-        List<ChannelExtension> channelExtension = sQLiteAccess.GetDBSet<ChannelExtension>($"WHERE UserID ={channelId}");
+        List<ChannelExtension> channelExtension = sQLiteAccess.GetDBSet<ChannelExtension>("",$"WHERE UserID ={channelId}");
 
         //update DB
         VideoDetails videoDetails = new VideoDetails()
@@ -295,8 +297,8 @@ public class YouTubeAPI
 
     public static async Task<eStatus> SaveVideoDetails(SearchResult video, string videoPath)
     {
-        DBHandler dBHandler = new DBHandler();
-        List<ChannelExtension> channel = dBHandler.GetDBSet<ChannelExtension>("* WHERE ChannelExtension_ChannelID = @ID", new { ID = video.Id.VideoId });
+        MultiSourceDataService dBHandler = new MultiSourceDataService();
+        List<ChannelExtension> channel = dBHandler.GetDBSet<ChannelExtension>(""," WHERE ChannelExtension_ChannelID = @ID", new { ID = video.Snippet.ChannelId });
         if (channel != null)
         {
             int duration = await durationVideo($"https://www.youtube.com/watch?v={video.Id.VideoId}", AppConfig.YouTubeDLPath);
@@ -304,11 +306,13 @@ public class YouTubeAPI
             {
                 VideoDetails_VideoID = video.Id.VideoId,
                 VideoDetails_ExtensionMapping = duration > 10 ? channel[0].ChannelExtension_Long : channel[0].ChannelExtension_Short,
-                VideoDetails_videoPath = videoPath
-
+                VideoDetails_videoPath = videoPath,
+                VideoDetails_Title = video.Snippet.Title
+                
             };
 
             AppStaticParameter.videoDownLoad.Add(videoDetails);
+           
             return eStatus.SUCCESS; 
         }
         return eStatus.FAILED;

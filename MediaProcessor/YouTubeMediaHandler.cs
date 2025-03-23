@@ -77,7 +77,7 @@ namespace MediaProcessor
         private DateTime GetLastUpdateExtension(string channelID)
         {
             //To Do
-            return DateTime.Now;    
+            return DateTime.Now.AddYears(-1);    
 
         }
     }

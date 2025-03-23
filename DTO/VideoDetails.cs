@@ -14,6 +14,8 @@ public class VideoDetails
     public int VideoDetails_Duration;
 
    public string VideoDetails_ExtensionMapping;
+
+    public string VideoDetails_Title;   
    public string VideoDetails_videoPath;
 
 }

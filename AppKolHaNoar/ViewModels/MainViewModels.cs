@@ -5,21 +5,40 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.Input;
 using DTO;
 using AppKolHaNoar.Services;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.UI.Xaml.Controls;
+using System.Diagnostics;
 
 namespace AppKolHaNoar.ViewModels;
 public class MainViewModels : INotifyPropertyChanged
 {
     public AutoSuggestViewModels AutoSuggestVM { get; set; }
-
+    public DataTimeViewModel DataTimeVM { get; set; }
     public ObservableCollection<ChannelExtension> Channels { get; set; }
     public ObservableCollection<Campaign> Campaigns { get; set; }
 
+    private bool _isCalculating;
+    public bool IsCalculating
+    {
+        get => _isCalculating;
+        set { _isCalculating = value; OnPropertyChanged();
+            OnPropertyChanged(nameof(LoadingVisibility)); // עדכון Visibility
+        }
+    }
+    private string _progressText = "מתבצע חישוב...";
+
+    public string ProgressText
+    {
+        get => _progressText;
+        set
+        {
+            _progressText = value;
+            OnPropertyChanged();
+        }
+    }
+    public Visibility LoadingVisibility => IsCalculating ? Visibility.Visible : Visibility.Collapsed;
 
     // field seelection
     private ServiceUI actionService;
@@ -30,6 +49,14 @@ public class MainViewModels : INotifyPropertyChanged
     public ICommand SendSelectedCampainCommand { get; }
     public ICommand ShowDialogToChangePasswordCommand { get; }
 
+    public DateTime Date { get; set; } = DateTime.Now;
+    public TimeSpan Time { get; set; } = DateTime.Now.TimeOfDay;
+
+    public void Submit()
+    {
+        DateTime selectedDateTime = Date.Add(Time);
+        //Debug.Log("Selected DateTime: " + selectedDateTime);
+    }
     //  private Campaign _selectedChannel;
     private Campaign _selectedCampaign;
     public ChannelExtension SelectedChannel
@@ -58,6 +85,7 @@ public class MainViewModels : INotifyPropertyChanged
     {
         AutoSuggestVM = new AutoSuggestViewModels();
         actionService = new ServiceUI();
+        DataTimeVM = new DataTimeViewModel();
 
         LoadChannels();
         SendSelectedChannelCommand = new RelayCommand(
@@ -73,23 +101,30 @@ public class MainViewModels : INotifyPropertyChanged
         ShowDialogToChangePasswordCommand = new RelayCommand(
            () => ShowDialogToChangePassword()
            );
+
     }
+    
+
     /// <summary>
     /// 
     /// </summary>
-    private void SendSelectedChannelToBackend()
+    private async Task SendSelectedChannelToBackend()
     {
+        IsCalculating = true;
         // actionService.dddd();
         //If a channel is selected 
         if (SelectedChannel != null)
         {
-            actionService.UpdateExtension(SelectedChannel.ChannelExtension_ChannelID);
+           await  actionService.UpdateExtension(SelectedChannel.ChannelExtension_ChannelID);
+        
         }
         else
         {
             GenericMessage message = new GenericMessage() { MessageContent = " לא נבחר ערוץ לבצע עליו את ההרצה" };
-            actionService.ShowMessageByDialog(message, Enums.eDialogType.OK);
+           await actionService.ShowMessageByDialog(message, Enums.eDialogType.OK);
         }
+        ProgressText = "ערוץ";
+      //  IsCalculating = false;
     }
 
     private void SendSelectedCampainToBackend()
@@ -109,9 +144,10 @@ public class MainViewModels : INotifyPropertyChanged
 
     private async void SendSelectedinfoToBackend()
     {
-
+        IsCalculating = true;
         bool f = await actionService.ChangeDB(); // קריאה לפונקציה בשירות
         UpdateDB();
+        IsCalculating = false;
 
 
     }

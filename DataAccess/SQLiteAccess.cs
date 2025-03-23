@@ -75,8 +75,11 @@ public class SQLiteAccess : DBConnection
 
             string query = $"INSERT INTO {tableName} ({string.Join(",", properties.Select(p => p.Name))}) " +
                          $"VALUES ({string.Join(",", properties.Select(p => "@" + p.Name))})";
-
-            connection.Execute(query, entity);
+            try
+            {
+                connection.Execute(query, entity);
+            }
+            catch(Exception e) { }
         }
         return true;
     }
@@ -124,6 +127,7 @@ public class SQLiteAccess : DBConnection
     {
         using (var connection = GetConnection())
         {
+
             string tableName = typeof(T).Name;
             string setClause = typeof(T).GetProperties().FirstOrDefault(p => p.Name.Contains("_ID"))?.Name.ToString() ?? string.Empty;
             connection.Open();
@@ -141,7 +145,7 @@ public class SQLiteAccess : DBConnection
         return null;
     }
     // Select Operation
-    public List<T> GetDBSet<T>(string selectedField = "", object parameters = null)
+    public List<T> GetDBSet<T>(string selectedField = "",string condition= "", object parameters = null)
     {
         try
         {
@@ -149,6 +153,7 @@ public class SQLiteAccess : DBConnection
             {
                 string query = "SELECT * FROM " + typeof(T).Name;
                 query = (selectedField != "") ? query.Replace("*", selectedField) : query;
+                query =$"{query} {condition}";
                 connection.Open();
                 return connection.Query<T>(query, parameters).ToList();
             }
@@ -195,5 +200,16 @@ public class SQLiteAccess : DBConnection
         {
             return 0;
         }
-    }
+     }
+
+        public bool TableExists<T>()
+    {
+        string tableName = typeof(T).Name; 
+        string query = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{tableName}'";
+        using (var connection = GetConnection())
+        {
+            connection.Open();
+            return  connection.Query<string>(query).FirstOrDefault() != null;
+        }
+        }
 }

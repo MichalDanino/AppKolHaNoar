@@ -46,16 +46,25 @@ namespace MediaProcessor
             // The static constructor of the AppConfig class- executes only once 
             // when the AppConfig class is loaded for the first time, 
             // meaning when it is first accessed in the code.
-            Dictionary<string, string> config = ReadEnv();
+           // Dictionary<string, string> config = ReadEnv();
            // string fileENV = MainDirectoryPath + @".env";
             //Env.Load(fileENV);
-            passwordYH = config["PASSWORD"];
-            UserNameYH = config["USERNAME"];
-            rootURL = config["ROOTURL"];
-            apiKeyYT = config["YOUTUBE_API_KEY"];
-            apiProjectNameYT = config["APPLICATION_NAME"];
-            YouTubeDLPath = config["YOUTUBE_DL_PATH"];
-            ManagerPassword = config["MANAGERPASSWORD"];
+            //passwordYH = config["PASSWORD"];
+            //UserNameYH = config["USERNAME"];
+            //rootURL = config["ROOTURL"];
+            //apiKeyYT = config["YOUTUBE_API_KEY"];
+            //apiProjectNameYT = config["APPLICATION_NAME"];
+            //YouTubeDLPath = config["YOUTUBE_DL_PATH"];
+            //ManagerPassword = config["MANAGERPASSWORD"];
+            //listExceptions = new List<GenericMessage>();
+            //NameDBFile = rootURL + "my_database.db";
+            passwordYH ="3953";
+            UserNameYH = "0795553875";
+            rootURL = @"C:\Program Files\KolHaNoar\";
+            apiKeyYT = "AIzaSyChVkppCJxUXR9UcE_BOo9FxiYUS - Kjnok";
+            apiProjectNameYT = "My First Project";
+            YouTubeDLPath = @"C:\yt-dlgANDffmpeg\yt-dlg\yt-dlp.exe";
+            ManagerPassword = "fvf";
             listExceptions = new List<GenericMessage>();
             NameDBFile = rootURL + "my_database.db";
             UpdateVideoSync();
@@ -175,7 +184,7 @@ namespace MediaProcessor
         /// </summary>
         public static void UpdateVideoSync()
         {
-            DBHandler dB = new DBHandler();  
+            MultiSourceDataService dB = new MultiSourceDataService();  
             List<ChannelExtension> channels =  dB.GetDBSet<ChannelExtension>();
          //   AppStaticParameter.VideoSyncTime = channels.ToDictionary(obj => obj.ChannelExtension_ChannelID, obj => obj.ChannelExtension_RunningTime);
 

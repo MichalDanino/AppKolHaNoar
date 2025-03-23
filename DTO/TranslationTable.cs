@@ -18,6 +18,8 @@ public class TranslationTable
             { "Campaign_ID", "מזהה" },
             { "Campaign_Number", "מס' קמפיין" },
             { "Campaign_Name", "שם הקמפיין" },
+            { "Campaign_RunningTime", "שעה לעדכון" },
+            { "Campaign_RunningDay", "יום לעדכון" },
 
             { "ChannelExtension_ID", "מזהה" },
             { "ChannelExtension_ChannelID", "מזהה שלוחה" },
@@ -25,7 +27,8 @@ public class TranslationTable
             { "ChannelExtension_Long", "מס' השלוחה לסרטונים ארוכים" },
             { "ChannelExtension_Short", "מספר השלוחה לסרטונים קצרים(פחות מ10 דק')" },
             { "ChannelExtension_Campaign", "מס' קמפיין להפעלה(בעת עדכו ןהשלוחה)" },
-            { "ChannelExtension_RunningTime", "שעה ויום לעדכון" }
+            { "ChannelExtension_RunningTime", "שעה לעדכון" },
+            { "ChannelExtension_RunningDay", "יום לעדכון" }
         };
 
     public static Dictionary<string, string> passwords = new Dictionary<string, string> {
