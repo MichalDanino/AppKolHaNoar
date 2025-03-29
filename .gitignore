@@ -404,3 +404,6 @@ FodyWeavers.xsd
 solution-config.props
 # Publish Profiles
 !**/Properties/PublishProfiles/*.pubxml
+/AppKolHaNoar/ViewModels/AutoSuggestViewModels.cs
+/AppKolHaNoar/ViewModels/MainViewModels.cs
+/AppKolHaNoar/AppKolHaNoar.csproj
