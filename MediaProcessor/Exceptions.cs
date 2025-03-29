@@ -40,7 +40,7 @@ public  class Exceptions
         {
             _exception.MessageContent = "הבקשה נשלחה אך נכשלה. נסה שוב או בדוק את הקובץ";
             _exception.MessageTitle = _error.ToString();
-            _exception.subMessage = $"ווידאו {videoDatails.VideoDetails_videoPath} לא עלה למערכת (מהה סרטון: {videoDatails.VideoDetails_VideoID}  ";
+            _exception.subMessage = $"ווידאו {videoDatails.VideoDetails_Title} לא עלה למערכת (מהה סרטון: {videoDatails.VideoDetails_videoPath}  ";
             AppConfig.listExceptions.Add(_exception);
             _error = eStatus.ACCESERROR;
 

@@ -14,6 +14,7 @@ using DTO;
 using MediaProcessor;
 using Microsoft.UI.Xaml;
 using static DTO.Enums;
+using System.Diagnostics;
 namespace AppKolHaNoar.Services;
 public class ServiceUI : ContentDialog
 {
@@ -25,7 +26,7 @@ public static MultiSourceDataService DB = new MultiSourceDataService();
 public static string GlobalMessageDialog = "האם אתה מאשר?";
 public static XamlRoot MainPageXamlRoot;
 GenericMessage message = new GenericMessage();
-
+   
     /// <summary>
     /// Checks if a new video has been uploaded to a specific YouTube channel.
     /// If a new video is found and the user wants to update, the function downloads the video, 
@@ -38,10 +39,7 @@ GenericMessage message = new GenericMessage();
 {
     eStatus status = eStatus.SUCCESS;
     status = youTubeMediaHandler.CheckForNewVideos(channelID);
-
-    if (status == eStatus.SUCCESS)
-    {
-       // status = youTubeMediaHandler.DownLoadVideoAsAudio(channelID);
+   
 
         if (status == eStatus.SUCCESS)
         {
@@ -53,24 +51,29 @@ GenericMessage message = new GenericMessage();
 
             }
         }
-    }
     else
     {
-        if (status == eStatus.NETWORKERROR)
+        if (status == eStatus.APIQuota)
         {
-            message = new GenericMessage() { MessageContent = "אין סרטונים חדשים בערוץ" };
+            message = new GenericMessage() { MessageContent = "מכסת הבקשות להורדת סרטונים הגיעה לסיומה, אנא נסה שנית מחר " };
         }
         else if (status == eStatus.FAILED)
         {
-            message = new GenericMessage() { MessageContent = "אין סרטונים חדשים בערוץ" };
+            message = new GenericMessage() { MessageContent = "השם או מספר הזיהוי של הערוץ לא נכון, אנא וודאו ונסו שנית " };
         }
-        else
+       else if (status == eStatus.NotHaveNews)
+       {
+           message = new GenericMessage() { MessageContent = "אין סרטונים חדשים בערוץ " };
+       }
+            else
         {
             message = new GenericMessage() { MessageContent = "הערוץ עודכן בסרטונים החדשים" };
 
         }
-        ShowMessageByDialog(message, eDialogType.OK);
+            ContentDialogResult result = await ShowMessageByDialog(message, eDialogType.OK);
+          
     }
+    
 }
 
 
@@ -84,9 +87,49 @@ public async Task<ContentDialogResult> ShowMessageByDialog(GenericMessage except
 {
     return await Dialogs.MainShowDialog(MainPageXamlRoot, exception, dialogType);
 }
+    public async void ShowPassword()
+    {
+        GenericMessage message = new GenericMessage() { MessageTitle = "נצרכת הרשאות גישה", subMessage = "אנא הכנס סיסמאת מנהל" };
+       bool status = await Dialogs.DisplayPasswords(MainPageXamlRoot, message);
+        if (status == true)
+            Dialogs.MainShowDialog(MainPageXamlRoot, message,eDialogType.list);
 
+    
+    }
 
-public static async Task ShowException(GenericMessage exception)
+    public bool run()
+    {
+        List<DateTime> list = new List<DateTime>();
+        List<ChannelExtension> channelExtensions = new List<ChannelExtension>();
+        List<Campaign> campaigns = new List<Campaign>();    
+        var channel =  DB.GetDBSet<ChannelExtension>().FindAll(a => a.ChannelExtension_RunningTime != null);
+       var campin=  DB.GetDBSet<Campaign>().FindAll(a => a.Campaign_RunningTime != null);
+        foreach (var channelExtension in channel)
+        {
+            DateTime.TryParse(channelExtension.ChannelExtension_RunningTime, out DateTime dateTime);
+           if( dateTime.Hour == DateTime.Now.Hour)
+                channelExtensions.Add(channelExtension);
+        }
+        foreach (var campain1 in campin)
+        {
+            DateTime.TryParse(campain1.Campaign_RunningTime, out DateTime dateTime);
+            if (dateTime.Hour == DateTime.Now.Hour)
+                campaigns.Add(campain1);    
+
+        }
+        foreach (var item in campaigns)
+        {
+            RunCampaign(item);
+            campaigns.Remove(item);
+        }
+        foreach(var item in channelExtensions)
+        {
+            UpdateExtension(item.ChannelExtension_ChannelID);
+        }
+        return true;
+    }
+
+    public static async Task ShowException(GenericMessage exception)
 {
     await ExceptionMessage.ShowErrorDialog(MainPageXamlRoot, exception);
 }
@@ -114,7 +157,7 @@ public bool RunCampaign(Campaign campaign)
 
 public bool InsertData<T>(List<T> entityList) where T : class
 {
-    return DB.AddSet<T>(entityList, "jkj");
+    return DB.AddSet<T>(entityList, "");
 }
 
 public List<T> GetDBSet<T>(object parameters = null)
@@ -135,17 +178,22 @@ public async Task<bool> ChangeDB()
 
     if (result == ContentDialogResult.Primary)
     {
-        if (DB.ControlDataSync() == eStatus.SUCCESS)
-        {
+        eStatus updateStatus = DB.ControlDataSync();
+        if(updateStatus != eStatus.NotHaveNews)
+            {
 
-            message = new GenericMessage() { MessageContent = " העדכון בוצע בהצלחה" };
-        }
-        else
-        {
-            message = new GenericMessage() { MessageContent = "משהו השתבש, אנא נסה שוב" };
+               if (updateStatus == eStatus.SUCCESS )
+               {
 
-        }
-        await Dialogs.MainShowDialog(MainPageXamlRoot, message, eDialogType.OK);
+                   message = new GenericMessage() { MessageContent = " העדכון בוצע בהצלחה" };
+               }
+               else
+               {
+                   message = new GenericMessage() { MessageContent = "משהו השתבש אנא נסה שוב" };
+
+               }
+               await Dialogs.MainShowDialog(MainPageXamlRoot, message, eDialogType.OK);
+           }
 
     }
     return true;

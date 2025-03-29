@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using AppKolHaNoar.Services;
 using Uno.Resizetizer;
 
 namespace AppKolHaNoar;
@@ -17,6 +19,15 @@ public partial class App : Application
 
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        var commandLineArgs = Environment.GetCommandLineArgs();
+        bool isNoGuiMode = commandLineArgs.Contains("--no-gui");
+
+        if (isNoGuiMode)
+        {
+            RunBackgroundProcess();
+            return;
+        }
+
         var builder = this.CreateBuilder(args)
             // Add navigation support for toolkit controls such as TabBar and NavigationView
             .UseToolkitNavigation()
@@ -91,6 +102,11 @@ public partial class App : Application
         Host = await builder.NavigateAsync<Shell>();
     }
 
+    private void RunBackgroundProcess()
+    {
+        BackgroundTask serviceUI = new BackgroundTask();
+        serviceUI.run();
+    }
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)
     {
         views.Register(

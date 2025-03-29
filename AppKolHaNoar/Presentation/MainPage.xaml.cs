@@ -10,6 +10,8 @@ using Microsoft.UI.Xaml.Data;
 using static DTO.Enums;
 using static DTO.Campaign;
 using AppKolHaNoar.ViewModels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.UI.Xaml.Documents;
 
 
 namespace AppKolHaNoar.Presentation;
@@ -27,39 +29,27 @@ public sealed partial class MainPage : Page
     {
         process = new ServiceUI();
         List<ChannelExtension> dd = new List<ChannelExtension>()
-       { 
+       {
             new ChannelExtension()
         {
-            ChannelExtension_ChannelID ="@Kol-Halashon",
-            ChannelExtension_Name = "fff",
+            ChannelExtension_ChannelID ="@Kodfgbfdsxcdd",
+            ChannelExtension_Name = "מס' שלוחה שגוי",
             ChannelExtension_Short = "content",
-            ChannelExtension_Long= "content",
+            ChannelExtension_Long= "contentmichalyafalala",
             ChannelExtension_Campaign = "1418810",
             ChannelExtension_RunningTime = "11:34",
             ChannelExtension_RunningDay = "שלישי"
 
 
         },
-            new ChannelExtension()
-        {
-            ChannelExtension_ChannelID ="@Kol-Halashon",
-            ChannelExtension_Name = "fff",
-            ChannelExtension_Short = "content",
-            ChannelExtension_Long= "content",
-            ChannelExtension_Campaign = "1418810",
-            ChannelExtension_RunningTime = "11:34",
-            ChannelExtension_RunningDay = "רביעי"
-
-
-        }};
-        process.InsertData<ChannelExtension>(dd);
+       };
+       process.InsertData<ChannelExtension>(dd);
 
         this.InitializeComponent();
         ViewModel = new ViewModels.MainViewModels();    
         this.Loaded += MainPage_Loaded;
-      // FillComboBox();
-
-        YoutubeAPI = new YouTubeMediaHandler();  
+      
+          YoutubeAPI = new YouTubeMediaHandler();  
 
     }
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -68,81 +58,18 @@ public sealed partial class MainPage : Page
         autoSuggestBox.DataContext = ViewModel;
         RunUpdating.DataContext = ViewModel;
         ChangeDB.DataContext = ViewModel;
-        //  RanCampaing.DataContext = ViewModel;
-        ComboBoxDay.DataContext = ViewModel;
-        TextDay.DataContext = ViewModel;
+        RunCampain.DataContext = ViewModel;
+      
         Password.DataContext = ViewModel;
         ViewModel.AutoSuggestVM.isGetDataFromService();
         comboBoxChannel.DataContext = ViewModel;
         progressBar.DataContext = ViewModel;
-        WaitText.DataContext = ViewModel;   
+        WaitText.DataContext = ViewModel;
+        Profile.DataContext = ViewModel;    
 
     }
     public static YemotHamashichAPI s_YEMOTHAMASHICH = new YemotHamashichAPI();
 
-    private async void UpdateExtension(object sender, RoutedEventArgs e)
-    {
-        //Get channel id from ComboBox
-        ChannelExtension channelToCheck = comboBoxChannel.SelectedItem as ChannelExtension;
-        if (channelToCheck != null)
-        {
-            await process.UpdateExtension( channelToCheck.ChannelExtension_ChannelID);
-        }
-        else 
-        {
-            GenericMessage message = new GenericMessage() { MessageContent = "לא נבחר ערוץ לבצע עליו בדיקה ועדכון השלוחה" };
-            await process.ShowMessageByDialog(message, eDialogType.OK);
-        }
-
-
-
-      //// bool NewVideo =  YoutubeAPI.CheckForNewVideos("gh");
-      // if (!NewVideo)
-      // { 
-      // var dialog = new Controller.CustomDialog("");
-      // dialog.XamlRoot= this.Frame.XamlRoot;
-      // var f =  await dialog.ShowAsync();
-      //     int y = 0;
-      //     //להוסיף כאן עדכון שלוחה במקרה שהלקוח רוצה
-
-        // }
-
-    }
-
-    private void AddChannel(object sender, RoutedEventArgs e)
-    {
-        
-
-
-
-        // this.Frame.Navigate(typeof(SubPage.Channel));
-
-    }
-
-
-
-
-    private async Task ShowCustomDialog()
-    {
-        ContentDialog dialog = new ContentDialog
-        {
-            Title = "Custom Dialog",
-            Content = "This is a simple dialog example in Uno Platform.",
-            CloseButtonText = "Close",
-            XamlRoot = this.XamlRoot // חשוב עבור Uno Platform
-        };
-
-        await dialog.ShowAsync();
-    }
-
-    internal void FillComboBox()
-    {
-      // comboBoxChannel.ItemsSource = ViewModel.Channels;
-       // comboBoxChannel.DisplayMemberPath = "ChannelExtension_Name";
-       // autoSuggestBox.ItemsSource = ViewModel.AutoSuggestVM.Items;
-       
-       // autoSuggestBox.DisplayMemberPath = "Campaign_Name";
-    }
    
 
 
@@ -184,6 +111,9 @@ public sealed partial class MainPage : Page
         autoSuggestBox.Text = ViewModel.AutoSuggestVM.SelectedText.Campaign_Name;
 
     }
+
+
+
 
 
 

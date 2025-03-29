@@ -19,8 +19,8 @@
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <!--<CheckBox Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"-->
-                                              <!--Content="{Binding Name}" DataContext="{Binding}"/>-->
+                                    <!--<TextBlock Text="צפה בסיסמאות" FontSize="18" Foreground="Blue"
+                   TextDecorations="Underline" ></TextBlock>-->
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>

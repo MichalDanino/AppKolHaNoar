@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using DTO;
 using AppKolHaNoar.Services;
 using System.Diagnostics;
+using Uno.Extensions.Reactive.Sources;
 
 namespace AppKolHaNoar.ViewModels;
 public class MainViewModels : INotifyPropertyChanged
@@ -44,10 +45,13 @@ public class MainViewModels : INotifyPropertyChanged
     private ServiceUI actionService;
     private ChannelExtension _selectedChannel;
 
+
     public ICommand SendSelectedChannelCommand { get; }
     public ICommand SendSelectedinfoCommand { get; }
     public ICommand SendSelectedCampainCommand { get; }
     public ICommand ShowDialogToChangePasswordCommand { get; }
+    public ICommand ShowDialoPasswordCommand { get; }
+
 
     public DateTime Date { get; set; } = DateTime.Now;
     public TimeSpan Time { get; set; } = DateTime.Now.TimeOfDay;
@@ -101,6 +105,9 @@ public class MainViewModels : INotifyPropertyChanged
         ShowDialogToChangePasswordCommand = new RelayCommand(
            () => ShowDialogToChangePassword()
            );
+        ShowDialoPasswordCommand = new RelayCommand(
+          () => ShowDialogPassword()
+          );
 
     }
     
@@ -111,7 +118,8 @@ public class MainViewModels : INotifyPropertyChanged
     private async Task SendSelectedChannelToBackend()
     {
         IsCalculating = true;
-        // actionService.dddd();
+        ProgressText = "מעדכן שלוחה...";
+
         //If a channel is selected 
         if (SelectedChannel != null)
         {
@@ -123,23 +131,27 @@ public class MainViewModels : INotifyPropertyChanged
             GenericMessage message = new GenericMessage() { MessageContent = " לא נבחר ערוץ לבצע עליו את ההרצה" };
            await actionService.ShowMessageByDialog(message, Enums.eDialogType.OK);
         }
-        ProgressText = "ערוץ";
-      //  IsCalculating = false;
+       IsCalculating = false;
     }
 
     private void SendSelectedCampainToBackend()
     {
-        // actionService.dddd();
        
-            actionService.RunCampaign(AutoSuggestVM.SelectedText);
+        actionService.RunCampaign(AutoSuggestVM.SelectedText);
 
      
     }
 
     private async void ShowDialogToChangePassword()
     {
+         // מחליפים ליעד הרצוי
         GenericMessage message = new GenericMessage() { MessageTitle = "שינוי סיסמאות" };
-        await actionService.ShowMessageByDialog(message, Enums.eDialogType.MultyButton);
+       await actionService.ShowMessageByDialog(message, Enums.eDialogType.MultyButton);
+    }
+
+    private async void ShowDialogPassword()
+    {
+        actionService.ShowPassword();
     }
 
     private async void SendSelectedinfoToBackend()

@@ -15,7 +15,8 @@ public static class Enums
         NETWORKERROR,           //error 500
         ACCESERROR,           //בעיות הרשאה או גישה
         FAILED,
-        APIQuota
+        APIQuota,
+        NotHaveNews
     }
     public enum eDialogType
     {
@@ -23,6 +24,7 @@ public static class Enums
         ASK,
         GETPARAMETER,
         MultyButton,
+        list,
         ERROR,
         INPUT
     }

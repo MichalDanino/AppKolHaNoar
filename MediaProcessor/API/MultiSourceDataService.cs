@@ -46,7 +46,7 @@ public class MultiSourceDataService
      
     public Enums.eStatus ChangeDataInDB(string tableType)
     {
-        eStatus status = eStatus.FAILED;
+        eStatus status = eStatus.SUCCESS;
         switch(tableType)
         {
             case "עדכון הקמפיינים":
@@ -58,11 +58,14 @@ public class MultiSourceDataService
             case "עדכון ערוצים":
                 status = LoadDataFromDBToExcel<ChannelExtension>();
                 break;
+            case "מילים לסינון":
+                status = LoadDataFromDBToExcel<ForbiddenWords>();
+                break;
             default:
-                return Enums.eStatus.SUCCESS;
+                return Enums.eStatus.FAILED;
 
         }
-        return Enums.eStatus.FAILED;
+        return status;
     }
     
 
@@ -70,26 +73,29 @@ public class MultiSourceDataService
     {
         string[] videoFiles = Directory.GetFiles(AppConfig.rootURL, "*.xls*");
         //string[] fileNames = filePaths.Select(file => Path.GetFileName(file)).ToArray();
-        Enums.eStatus statusDbUdate = Enums.eStatus.FAILED;
+        Enums.eStatus statusDBUdate = Enums.eStatus.NotHaveNews;
 
         foreach (var classType in videoFiles)
         {
             switch (Path.GetFileName(classType).Split(".")[0])
             {
                 case "Campaign":
-                    statusDbUdate = SyncDataToDB<Campaign>();
+                    statusDBUdate = SyncDataToDB<Campaign>();
                     break;
                 case "CallRouting":
-                    statusDbUdate = SyncDataToDB<CallRoutingDTO>();
+                    statusDBUdate = SyncDataToDB<CallRoutingDTO>();
                     break;
                 case "ChannelExtension":
-                    statusDbUdate = SyncDataToDB<ChannelExtension>();
+                    statusDBUdate = SyncDataToDB<ChannelExtension>();
+                    break;
+                case "ForbiddenWords":
+                    statusDBUdate = SyncDataToDB<ForbiddenWords>();
                     break;
                 default:
                     break;
             }
         }
-        return statusDbUdate;   
+        return statusDBUdate;   
     }
     private Enums.eStatus  LoadDataFromDBToExcel<T>() where T : class, new()
     {
@@ -183,6 +189,18 @@ public class MultiSourceDataService
 
 
     #region Configuration file
+    
+
+    public List<string>   ShowPasswort()
+    {
+        List<string> strings = new List<string>();
+        AppConfig.ReadEnv();
+        foreach (var kvp in AppConfig.env)
+        {
+            strings.Add($"{kvp.Key} = {kvp.Value}");
+        }
+        return strings;
+    }
     public eStatus UpdatePassword(string nameProperty, string password)
     {
         AppConfig.UpdateEnv(nameProperty, password);

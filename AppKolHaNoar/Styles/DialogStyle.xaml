@@ -1,0 +1,88 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style TargetType="Button">
+        <Setter Property="Background" Value="Black"/>
+        <Setter Property="Foreground" Value="Red"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Height" Value="35"/>
+
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="60"/>
+
+        <!--<Setter Property="Width" Value="150"/>-->
+        <Setter Property="BorderBrush" Value="Black"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <!-- מצב רגיל -->
+                                <VisualState x:Name="Normal">
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="BackgroundElement"
+                                                        Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+                                                        To="Black"
+                                                        Duration="0:0:0.2"/>
+                                        <ColorAnimation Storyboard.TargetName="ContentPresenter"
+                                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                                        To="Red"
+                                                        Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <!-- מצב לחוץ -->
+                                <VisualState x:Name="Pressed">
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="BackgroundElement"
+                                                        Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+                                                        To="Gray"
+                                                        Duration="0:0:0.2"/>
+                                        <ColorAnimation Storyboard.TargetName="ContentPresenter"
+                                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                                        To="White"
+                                                        Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <!-- מצב לאחר לחיצה (שחור בהיר) -->
+                                <VisualState x:Name="PointerOver">
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="BackgroundElement"
+                                                        Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+                                                        To="Gray"
+                                                        Duration="0:0:0.2"/>
+                                        <ColorAnimation Storyboard.TargetName="ContentPresenter"
+                                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                                        To="White"
+                                                        Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <Border x:Name="BackgroundElement" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="20"
+                                >
+                            <ContentPresenter x:Name="ContentPresenter"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Padding="5"
+                                              />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+
+
+    </Style>
+    
+
+</ResourceDictionary>

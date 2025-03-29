@@ -24,6 +24,7 @@ namespace MediaProcessor
         public static string apiProjectNameYT = "";
         public static string NameDBFile = "";
         public static string YouTubeDLPath = "";
+        public static string FFmpegPath = "";
         public static string ManagerPassword = "";
 
         static byte[] iv = new byte[16];
@@ -64,6 +65,7 @@ namespace MediaProcessor
             apiKeyYT = "AIzaSyChVkppCJxUXR9UcE_BOo9FxiYUS - Kjnok";
             apiProjectNameYT = "My First Project";
             YouTubeDLPath = @"C:\yt-dlgANDffmpeg\yt-dlg\yt-dlp.exe";
+            FFmpegPath = @"C:\yt-dlgANDffmpeg\yt-dlg\ffmpeg.exe";
             ManagerPassword = "fvf";
             listExceptions = new List<GenericMessage>();
             NameDBFile = rootURL + "my_database.db";

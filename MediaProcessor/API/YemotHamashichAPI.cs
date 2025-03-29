@@ -39,46 +39,53 @@ public class YemotHamashichAPI
     /// </summary>
     public async Task<eStatus>  UplaodFiles()
     {
-
+        AppConfig.listExceptions.Clear();
         using (httpClient = new HttpClient())
         {
-            try
+            string reportToken =  await HandleRequest();
+            if (reportToken == "OK")
             {
-                status = eStatus.SUCCESS;
-                //get token
-                token = await HandleRequest();
-                //patch to upload files
-                string[] videoFiles = Directory.GetFiles(AppConfig.rootURL + @"Downloads");
-                List<string> uploadRespone = new List<string>();
-                VideoDetails videoDetails = new VideoDetails();
-                foreach (var videoFile in videoFiles)
+                try
                 {
-                    if (videoFile.Contains(".mp3"))
+                    status = eStatus.SUCCESS;
+                    
+                    //patch to upload files
+                    string[] videoFiles = Directory.GetFiles(AppConfig.rootURL + @"Downloads");
+                    List<string> uploadRespone = new List<string>();
+
+                    foreach (var videoFile in videoFiles)
                     {
-                        int chunkSize = 50000000; // 1MB
-                        await foreach (var chunk in GetChunks(videoFile, chunkSize))
+                        if (videoFile.Contains(".mp3"))
                         {
+                            VideoDetails videoDetails = AppStaticParameter.videoDownLoad.FirstOrDefault(a => videoFile.Contains(a.VideoDetails_Title));
 
-                            var formData = CreateFormData(chunk, videoFile);
-                            string response = await Uploadfile(formData);
-                            status = await Exceptions.checkUploadFile(response, videoDetails);
-                            if (status != eStatus.SUCCESS)
+                            int chunkSize = 50000000; // 1MB
+
+                            await foreach (var chunk in GetChunks(videoFile, chunkSize))
                             {
-                                break;
+
+                                MultipartFormDataContent formData = CreateFormData(chunk, videoFile, videoDetails.VideoDetails_ExtensionMapping);
+                                string response = await Uploadfile(formData);
+                                status = await Exceptions.checkUploadFile(response, videoDetails);
+
+                                if (status != eStatus.SUCCESS)
+                                {
+                                    break;
+                                }
                             }
+                            File.Delete(videoFile);
+
                         }
-                        Directory.Delete(videoFile, true);
+                        // If there is problem with the internet connection stop all uploading
+                        if (status == eStatus.NETWORKERROR)
+                        {
+                            break;
+                        }
 
                     }
-                    // if there is problem with the internet connection.stop all uploading
-                    if (status == eStatus.NETWORKERROR)
-                    {
-                        break;
-                    }
-
                 }
+                catch (Exception ex) { }
             }
-            catch (Exception ex) { }
             return status;
         }
     }
@@ -91,17 +98,17 @@ public class YemotHamashichAPI
     {
         
         var response =  httpClient.GetStringAsync(baseUrl + $"Login?username={AppConfig.UserNameYH}&password={AppConfig.passwordYH}").Result;
-        timestamp = DateTime.Now;
         var jsonResponse = JObject.Parse(response);
 
         if (jsonResponse["responseStatus"].ToString() == "OK")
-        {
-            return jsonResponse["token"].ToString();
+        {       
+            timestamp = DateTime.Now;
+            token = jsonResponse["token"].ToString();
+           
         }
-        else
-        {
-            return null;
-        }
+        
+         return jsonResponse["responseStatus"].ToString();
+        
 
     }
     static async IAsyncEnumerable<byte[]> GetChunks(string filePath, int chunkSize)
@@ -129,16 +136,17 @@ public class YemotHamashichAPI
     /// <summary>
     /// Create FormData to upload file by HTTP Post request
     /// </summary>
-    /// <param name="bytes"></param>
-    /// <param name="contentName"></param>
-    /// <param name="partialData"></param>
+    /// <param name="bytes">size of file in bytes</param>
+    /// <param name="contentName">file name</param>
+    /// <param name="ExtensionMapping">Extension name</param>
+    /// <param name="partialData">data abute file if file is partial file</param>
     /// <returns>FormData object</returns>
-    static MultipartFormDataContent CreateFormData(byte[] bytes, string contentName, (string uuid, long fileSize, int partCount, int part)? partialData = null)
+    static MultipartFormDataContent CreateFormData(byte[] bytes, string contentName,string ExtensionMapping, (string uuid, long fileSize, int partCount, int part)? partialData = null)
     {
         var data = new Dictionary<string, object>
         {
             { "token", token },
-            { "path", remotePath+"content/" },
+            { "path", $"{remotePath }{ExtensionMapping}/" },
             { "convertAudio", 1 },
             { "autoNumbering", true }
         };
@@ -202,11 +210,13 @@ public class YemotHamashichAPI
 
     public async Task<List<Campaign>> GetCampaing()
     {
+        string reportToken = "";
         List<Campaign> campaigns = new List<Campaign>();
         if (IsTimestampExpired())
-           token = await HandleRequest();
+           reportToken = await HandleRequest();
 
-        if(token != null) { 
+        if(reportToken == "OK") 
+        { 
          var response =  httpClient.GetStringAsync(baseUrl + $"GetTemplates/?token={token}").Result;
             requsetLegal(response);
             if (globalStatus != eStatus.SUCCESS)

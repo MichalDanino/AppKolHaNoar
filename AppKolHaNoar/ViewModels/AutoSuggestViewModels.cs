@@ -34,7 +34,7 @@ public class AutoSuggestViewModels : INotifyPropertyChanged
 
     public AutoSuggestViewModels()
     {
-        Items = new ObservableCollection<Campaign> ( serviceUI.GetCampaignsTable().OrderBy(a=> a.Campaign_Name)?.ToList()?? new List<Campaign>());
+       Items = new ObservableCollection<Campaign> ( /*serviceUI.GetCampaignsTable().OrderBy(a=> a.Campaign_Name)?.ToList()?? new List<Campaign>()*/);
        
         baseItems = new ObservableCollection<Campaign> (Items);
     }

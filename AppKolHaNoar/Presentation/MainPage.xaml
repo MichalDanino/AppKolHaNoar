@@ -75,10 +75,12 @@
       xmlns:utu="using:Uno.Toolkit.UI"
       xmlns:um="using:Uno.Material"
       NavigationCacheMode="Required"
-      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+     xmlns:controller="using:AppKolHaNoar.Presentation.Controller"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <ScrollViewer>
         <Grid utu:SafeArea.Insets="VisibleBounds">
+
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
@@ -94,13 +96,20 @@
 
             <!-- Header -->
             <StackPanel Background="Black"  Grid.Column="0" HorizontalAlignment="Left" Padding="40,200"  >
-                <Border Width="60" Height="60" CornerRadius="30"  >
-                    <Image Source="ms-appx:///Assets/unnamed.jpg"
-           Stretch="UniformToFill"/>
-                     <ToolTipService.ToolTip>
+                <StackPanel CornerRadius="40" >
+
+
+
+                    <Button x:Name="Profile" Background="Black"
+                 Width="120"  Command="{Binding ShowDialoPasswordCommand,Mode=TwoWay}">
+                        <Image Source="ms-appx:///Assets/unnamed.jpg" Stretch="UniformToFill" HorizontalAlignment="Center"/>
+
+                    </Button>
+
+                    <ToolTipService.ToolTip>
                 <ToolTip Content="פרופיל"/>
             </ToolTipService.ToolTip>
-                </Border>
+                </StackPanel>
             </StackPanel>
 
             <!-- Content -->
@@ -113,7 +122,7 @@
                         <FontIcon Glyph="&#xE721;"/>
                         
                         <AutoSuggestBox x:Name="autoSuggestBox"
-                            PlaceholderText="בחר ערוץ"
+                            PlaceholderText="בחר קמפיין"
                             Text="{Binding AutoSuggestVM.SelectedText.Campaign_Name, Mode=OneWay}"
                             ItemsSource="{Binding AutoSuggestVM.Items}"
                             TextChanged="AutoSuggestBox_TextChanged"
@@ -123,7 +132,7 @@
                             Width="250"
                              />
                         </StackPanel>
-                        <Button x:Name="RunUpdatin6g" Content="התחל הרצה" Background="Black" HorizontalAlignment="Center" Width="100"/>
+                        <Button x:Name="RunCampain" Content="הפעל קמפיין" HorizontalAlignment="Center" Width="150" Command="{Binding SendSelectedCampainCommand,Mode=TwoWay}"/>
 
                     </StackPanel>
                 </Border>
@@ -134,21 +143,17 @@
                     <ComboBox x:Name="comboBoxChannel" Width="300" ItemsSource="{Binding Channels}"
                   DisplayMemberPath="ChannelExtension_Name"
                   SelectedItem="{Binding SelectedChannel, Mode=TwoWay}"/>
-                        <Button x:Name="RunUpdating" Content="Sign In" Background="Black" HorizontalAlignment="Center" Width="100" Command="{Binding SendSelectedChannelCommand,Mode=TwoWay}"/>
+                        <Button x:Name="RunUpdating" Content="התחל הרצה"  HorizontalAlignment="Center" Width="150" Command="{Binding SendSelectedChannelCommand,Mode=TwoWay}"/>
                     </StackPanel>
                 </Border>
                
 
             </StackPanel>
             <!-- Buttons -->
-            <StackPanel Grid.Column="2" Orientation="Vertical" Spacing="10">
-                <Button x:Name="RunUpdating2" Content="Sign In" Background="Black" Foreground="Red" Width="100"/>
-                <Button x:Name="ChangeDB" Content="שנה" Background="Black" Foreground="Red" Width="100" Command="{Binding SendSelectedinfoCommand,Mode=TwoWay}" />
-                <Button x:Name="Password" Content="Sign In" Background="Black" Foreground="Red" Width="100"/>
-                <ComboBox x:Name="ComboBoxDay" ItemsSource="{Binding DataTimeVM.DaysOfWeek}" SelectedItem="{Binding DataTimeVM.SelectedDay, Mode=TwoWay}" />
-                <TextBlock x:Name="TextDay" Text="{Binding DataTimeVM.SelectedDay}" />
-                <TimePicker x:Name="time"  />
-                <Button x:Name="dataTime" Content="Submit" />
+            <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Vertical" Spacing="10" HorizontalAlignment="Center"  VerticalAlignment="Center">
+                <Button x:Name="ChangeDB" Content="הוסף\שנה מידע"  Foreground="Red" HorizontalAlignment="Center" Width="150" Command="{Binding SendSelectedinfoCommand,Mode=TwoWay}" />
+                <Button x:Name="Password" Content="שנה סיסמאות" HorizontalAlignment="Center" Foreground="Red" Width="150" Command="{Binding ShowDialogToChangePasswordCommand,Mode=TwoWay}"/>
+               
             </StackPanel>
             <ProgressRing x:Name="loadingRing" HorizontalAlignment="Center" VerticalAlignment="Center" IsActive="False"/>
             <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Background="WhiteSmoke">

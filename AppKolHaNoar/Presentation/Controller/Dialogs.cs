@@ -10,6 +10,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
 using static DTO.Enums;
+using static AppKolHaNoar.Models.AppConfig;
+using MediaProcessor;
 
 namespace AppKolHaNoar.Presentation.Controller;
 public class Dialogs
@@ -18,7 +20,7 @@ public class Dialogs
     private static ContentDialog currentDialog;
     private static ProgressBar progressBar;
     private static MultiSourceDataService updateDB = new MultiSourceDataService();
-    private static List<string> nameTable = new List<string>() { "עדכון הקמפיינים", "עדכון שלוחות", "עדכון ערוצים" };
+    private static List<string> nameTable = new List<string>() { "מילים לסינון","עדכון הקמפיינים", "עדכון שלוחות", "עדכון ערוצים" };
    
     private static int timeOut;
     private TaskCompletionSource<string> dialogResultSource = new TaskCompletionSource<string>();
@@ -52,13 +54,20 @@ public class Dialogs
                 break;
             case eDialogType.MultyButton:
                dialogClass.MultyButton(xamlRoot,message);
+                
+
                 break;
             case eDialogType.INPUT:
                 dialogClass.InputDialog(xamlRoot, message);
                 break;
+            case eDialogType.list:
+                dialogClass.Showlistpassword(xamlRoot);
+                break;
+
             default:
                 break;
         }
+
         if (currentDialog != null)
         {
             var result =  currentDialog.ShowAsync();
@@ -149,6 +158,8 @@ public class Dialogs
             {
                 Children =
         {
+             new TextBlock { Text = message.subMessage },
+
             new TextBlock { Text = message.MessageContent },
             new TextBlock { 
                 Text = message.subMessage , Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red)},
@@ -179,17 +190,27 @@ public class Dialogs
         
         StackPanel stackPanel = new StackPanel();
         //dialogResultSource = new TaskCompletionSource<string>();
-
+        TextBlock textBlock = new TextBlock()
+        {
+            Text = message.MessageContent
+        };
+        var scrollViewer = new ScrollViewer
+        {
+            Content = stackPanel,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto, // גלילה אוטומטית אם צריך
+            MaxHeight = 400
+        };
         currentDialog = new ContentDialog
         {
             Title = message.MessageTitle,
-            Content = stackPanel,
+            Content =scrollViewer,
             XamlRoot = pageXamlRoot,
             PrimaryButtonText = "אישור", // מונע סגירה אוטומטית
             CloseButtonText = ""
         };
         stackPanel.Children.Add(progressBar);
-
+        stackPanel.Children.Add(textBlock);
+      //  stackPanel.Children.Add(scrollViewer);
         foreach (var buttonText in nameTable)
         {
             var button = new Button
@@ -222,11 +243,16 @@ public class Dialogs
     public void passwordChangeDialog(XamlRoot pageXamlRoot, GenericMessage message)
     {
             StackPanel stackPanel = new StackPanel();
-
+        var scrollViewer = new ScrollViewer
+        {
+            Content = stackPanel,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto, // גלילה אוטומטית אם צריך
+            MaxHeight = 400
+        };
         currentDialog = new ContentDialog
         {
             Title = message.MessageTitle,
-            Content = stackPanel,
+            Content = scrollViewer,
             XamlRoot = pageXamlRoot,
             PrimaryButtonText = "אישור", // מונע סגירה אוטומטית
             CloseButtonText = ""
@@ -237,7 +263,9 @@ public class Dialogs
             var button = new Button
             {
                 Content = buttonText.Key,
-                Margin = new Thickness(5)
+                Margin = new Thickness(5),
+                HorizontalAlignment = HorizontalAlignment.Center
+
             };
 
 
@@ -253,8 +281,17 @@ public class Dialogs
             stackPanel.Children.Add(button);
         }
 
+        TextBlock textBlock = new TextBlock()
+        {
+            Text = "צפה בסיסמאות הנוכחיות",
+            TextDecorations = Windows.UI.Text.TextDecorations.Underline,
 
-    }
+
+        };
+        
+
+
+        }
 
 
     private async void ChangePassword(XamlRoot pageXamlRoot,GenericMessage message,string nameProperty)
@@ -281,44 +318,76 @@ public class Dialogs
         } while (!getNewPassword);
         updateDB.UpdatePassword(nameProperty, textBox.Text);
     }
-    
-     
 
-    public static void ShowlistDialog(XamlRoot pageXamlRoot, List<string> message, string title = "")
+
+    public static async Task<bool> DisplayPasswords(XamlRoot pageXamlRoot, GenericMessage message)
+    {
+        
+        bool getNewPassword = false;
+        TextBox textBox = new TextBox();
+        do
+        {
+            ContentDialogResult result = await MainShowDialog(pageXamlRoot, message, eDialogType.INPUT);
+            if (result == ContentDialogResult.Primary)
+            {
+                StackPanel stackPanel = (StackPanel)currentDialog.Content;
+                textBox = stackPanel.Children.OfType<TextBox>().FirstOrDefault();
+
+                if (textBox != null)
+                {
+                    if (textBox.Text == MediaProcessor.AppConfig.ManagerPassword)
+                    {
+                        getNewPassword = true;
+                    }
+
+
+                    else if (textBox.Text == "")
+                    {
+                        message.subMessage = "לא התקבלה סיסמה";
+
+                    }
+                    else
+                         message.subMessage = "הסיסמה שגויה";
+
+
+
+                }
+                } 
+            else
+                break;
+        } while (!getNewPassword  );
+
+        return getNewPassword;
+    }
+
+    public void Showlistpassword(XamlRoot pageXamlRoot)
     {
 
         var listView = new ListView
         {
+
             SelectionMode = ListViewSelectionMode.None, // מונע בחירה רגילה
-            ItemsSource = title
+            ItemsSource = updateDB.ShowPasswort()
         };
-        // שימוש ב-ItemTemplate כדי להוסיף CheckBox לכל פריט
-        //listView.ItemTemplate = new DataTemplate(() =>
-        //{
-        //    var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        //    var checkBox = new CheckBox();
-        //    var textBlock = new TextBlock();
-        //    textBlock.SetBinding(TextBlock.TextProperty, new Binding { Path = new PropertyPath("Name") });
 
-        //    stackPanel.Children.Add(checkBox);
-        //    stackPanel.Children.Add(textBlock);
-
-        //    var container = new ListViewItem { Content = stackPanel };
-        //    return container;
-        //});
-       
-        // יצירת הדיאלוג
-        ContentDialog dialog = new ContentDialog
+        currentDialog = new ContentDialog
         {
-            Title = "בחר פריטים",
+            Title = "הסיסמאות",
             Content = listView,
             PrimaryButtonText = "אישור",
+            SecondaryButtonText = "עדכן סיסמה",
             CloseButtonText = "ביטול",
             XamlRoot = pageXamlRoot
         };
+        currentDialog.SecondaryButtonClick += async (sender, args) =>
+        {
+            currentDialog.Hide();
+            // מחליפים ליעד הרצוי
+            GenericMessage message = new GenericMessage() { MessageTitle = "שינוי סיסמאות" };
+            MainShowDialog(pageXamlRoot, message, eDialogType.MultyButton);
 
+        };
 
-        //return await dialog.ShowAsync();
     }
     public static void ProgressBarDialog()
     {
@@ -327,8 +396,12 @@ public class Dialogs
             Minimum = 0,
             Maximum = 100,
             Value = 0,
+             Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(225, 220, 37, 5)),
+             Background = new SolidColorBrush(Windows.UI.Color.FromArgb(225, 225, 225, 225)),
             IsIndeterminate = true, // הצגת ProgressBar ללא צורך במעקב אחר ערכים
             Visibility = Visibility.Collapsed // בהתחלה נסתר
         };
     }
+
+    
 }

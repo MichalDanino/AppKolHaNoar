@@ -21,6 +21,7 @@
         </utum:MaterialToolkitTheme>
                 <ResourceDictionary Source="Styles/PopupStyles.xaml"/>
                 <ResourceDictionary Source="Styles/AutoSuggestBoxStyle.xaml"/>
+                <ResourceDictionary Source="/Styles/DialogStyle.xaml" />
 
             </ResourceDictionary.MergedDictionaries>
 

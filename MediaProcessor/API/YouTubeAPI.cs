@@ -48,15 +48,17 @@ public class YouTubeAPI
 
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
-                ApiKey = "AIzaSyChVkppCJxUXR9UcE_BOo9FxiYUS - Kjnok",/* AppConfig.apiKeyYT,*/
+                ApiKey =  AppConfig.apiKeyYT,
                 ApplicationName = AppConfig.apiProjectNameYT
             });
             // Playlist ID data request details
             var searchRequest = youtubeService.Search.List("snippet");
             searchRequest.ChannelId = ChannelID;
             searchRequest.Order = SearchResource.ListRequest.OrderEnum.Date; // לפי תאריך פרסום
-            searchRequest.MaxResults = 1;
             searchRequest.Type = "video";
+            // Get the result from the last date the channel ran until today.
+            searchRequest.PublishedAfterDateTimeOffset = DateTime.Parse(YouTubeMediaHandler.GetLastUpdateExtension(ChannelID).ToString()).ToUniversalTime();
+
             SearchListResponse channelResponse = searchRequest.ExecuteAsync().Result;
 
 
@@ -81,21 +83,33 @@ public class YouTubeAPI
 
     public static async Task<eStatus> YouTubeMediaMain(string channelID)
     {
-        // eStatus status = eStatus.SUCCESS;
-        //need update 
-        if (channelID.Contains("@"))
-        {
-            channelID = await GetChannelIdByNameAsync(channelID);
+       
+        channelID = await GetChannelIdByNameAsync(channelID);
 
-        }
+        
         if (channelID == "")
-            return eStatus.FAILED;
+                return eStatus.FAILED;
 
         if (channelID == "false")
-            return eStatus.APIQuota;
+                return eStatus.APIQuota;
+
         SearchListResponse playlistItemListResponse = await fetchChannelVideosByAPI(channelID);
-        await DownloadVideoAsAudio(channelID, playlistItemListResponse);
-        return eStatus.SUCCESS;
+
+        if (playlistItemListResponse.Items != null && playlistItemListResponse.Items.Count > 0)
+             { 
+                 //filter the video by list of bidden words
+                 playlistItemListResponse.Items = playlistItemListResponse.Items
+                                                           .Where(item => !AppStaticParameter.forbiddenWords
+                                                           .Any(word => item.Snippet.Title
+                                                           .Contains(word, StringComparison.OrdinalIgnoreCase)))
+
+                                                           .ToList();
+            return await DownloadVideoAsAudio(channelID, playlistItemListResponse);
+                 
+
+             }
+        return eStatus.NotHaveNews;
+
     }
     /// <summary>
     ///  Retrieves the duration of a video in minutes by executing yt-dlp (or youtube-dl) 
@@ -138,21 +152,22 @@ public class YouTubeAPI
         {
             var youtubeDl = new YoutubeDL
             {
-                YoutubeDLPath = @"C:\yt-dlgANDffmpeg\yt-dlg\yt-dlp.exe",
-                FFmpegPath = @"C:\yt-dlgANDffmpeg\yt-dlg\ffmpeg.exe"
+                YoutubeDLPath =AppConfig.YouTubeDLPath,
+                FFmpegPath = AppConfig.FFmpegPath
             };
             foreach (SearchResult video in videoList.Items)
             {
 
                 if (video.Id.Kind == "youtube#video") // verify that is video
                 {
+                    //Remove all symbols, numbers, and letters from the title.
                     video.Snippet.Title = Regex.Replace(video.Snippet.Title, @"[\uD800-\uDBFF][\uDC00-\uDFFF]|[\\\/|:*?""<>]", "").Replace(" ", "_");
+                  
                     string videoTitle = video.Snippet.Title;
-                    string videoId = /*video.Id.VideoId*/"T5NxX7ZG22Y";
+                    string videoId = video.Id.VideoId;
                     string videoUrl = $"https://www.youtube.com/watch?v={videoId}";
 
 
-                    //await durationVideo(videoUrl, youtubeDl.YoutubeDLPath);
                     // path folder output
                     string outputPath = Path.Combine(AppConfig.rootURL + "Downloads", $"{videoTitle}.%(ext)s");
 
@@ -166,14 +181,13 @@ public class YouTubeAPI
                     };
 
                     // Audio download only
-                   // var result = youtubeDl.RunWithOptions(videoUrl, options).Result;
-                    //if (!result.Success)
-                    //{
-
-                    //    status = eStatus.NETWORKERROR;
-                    //    return status;
-                    //}
-                     status =  await SaveVideoDetails(video, outputPath);
+                    var result = youtubeDl.RunWithOptions(videoUrl, options).Result;
+                    if (!result.Success)
+                    {
+                        status = eStatus.NETWORKERROR;
+                        return status;
+                    }
+                    status =  await InsertVideoDetails(video, outputPath);
                 }
             }
             return status;
@@ -184,65 +198,51 @@ public class YouTubeAPI
 
     }
 
+   
+
+
     /// <summary>
-    /// update the following parameter of video: channelID, Duration and call Extension to upload this file
+    /// 
     /// </summary>
-    /// <param name="videoUrl">video url inorder to get ID channel</param>
-    /// <param name="duration">video duration </param>
-    public void InsertVideoDetails(string videoUrl, int duration)
+    /// <param name="channelID"></param>
+    /// <returns>Channel ID if the input is validy , otherwise return empty string</returns>
+    public static async Task<string> GetChannelIdByNameAsync(string channelID)
     {
-        string channelId = videoUrl.Split("=")[1].Replace("\"", "");
-        SQLiteAccess sQLiteAccess = new SQLiteAccess(AppConfig.NameDBFile);
-
-        //Retrieve the channel entity along with its linked call extension information
-        List<ChannelExtension> channelExtension = sQLiteAccess.GetDBSet<ChannelExtension>("",$"WHERE UserID ={channelId}");
-
-        //update DB
-        VideoDetails videoDetails = new VideoDetails()
+        if (channelID.Contains("@"))
         {
-            VideoDetails_VideoID = channelId,
-            VideoDetails_Duration = duration,
-            VideoDetails_ExtensionMapping = channelExtension[0].ChannelExtension_Long
-        };
-        // if video lass then 10 minets
-        if (duration <= 10)
-        {
-            ;
-            videoDetails.VideoDetails_ExtensionMapping = channelExtension[0].ChannelExtension_Short;
-        }
-    }
-    public static async Task<string> GetChannelIdByNameAsync(string channelName)
-    {
-        var youtubeService = new YouTubeService(new BaseClientService.Initializer()
-        {
-            ApiKey = AppConfig.apiKeyYT,
-            ApplicationName = AppConfig.apiProjectNameYT
-
-        });
-
-        try
-        {
-            var channelRequest = youtubeService.Channels.List("id");
-            channelRequest.ForHandle = channelName;  // שם הערוץ בפורמט @Handle
-            var channelResponse = channelRequest.ExecuteAsync().Result;
-            if (channelResponse.Items.Count > 0)
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
-                var channel = channelResponse.Items[0];
-                return channel.Id;
-            }
-            else
+                ApiKey = AppConfig.apiKeyYT,
+                ApplicationName = AppConfig.apiProjectNameYT
+
+            });
+
+            try
             {
-                return "";
+                var channelRequest = youtubeService.Channels.List("id");
+                channelRequest.ForHandle = channelID;  // שם הערוץ בפורמט @Handle
+                var channelResponse = channelRequest.ExecuteAsync().Result;
+
+                if (channelResponse.Items.Count > 0)
+                {
+                    var channel = channelResponse.Items[0];
+                    return channel.Id;
+                }
+                else
+                {
+                    return "";
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            if (ex.Message.Contains("quotaExceeded"))
+            catch (Exception ex)
             {
-                return "false";
+                if (ex.Message.Contains("quotaExceeded"))
+                {
+                    return "false";
+                }
             }
+            return "";
         }
-        return "";
+        return channelID; 
     }
     public static async Task<eStatus> DownloadVideoAsText(string channelId)
     {
@@ -295,13 +295,14 @@ public class YouTubeAPI
 
     }
 
-    public static async Task<eStatus> SaveVideoDetails(SearchResult video, string videoPath)
+    public static async Task<eStatus> InsertVideoDetails(SearchResult video, string videoPath)
     {
         MultiSourceDataService dBHandler = new MultiSourceDataService();
         List<ChannelExtension> channel = dBHandler.GetDBSet<ChannelExtension>(""," WHERE ChannelExtension_ChannelID = @ID", new { ID = video.Snippet.ChannelId });
         if (channel != null)
         {
             int duration = await durationVideo($"https://www.youtube.com/watch?v={video.Id.VideoId}", AppConfig.YouTubeDLPath);
+           
             VideoDetails videoDetails = new VideoDetails()
             {
                 VideoDetails_VideoID = video.Id.VideoId,
@@ -320,6 +321,8 @@ public class YouTubeAPI
 
 
     }
+
+    
 }
 
 

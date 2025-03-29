@@ -359,6 +359,7 @@ namespace DataAccess
 
             ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
+            // open Sheet
             using (var package = new ExcelPackage(new FileInfo(filePath)))
             {
                 var worksheet = package.Workbook.Worksheets[0];
@@ -367,18 +368,26 @@ namespace DataAccess
 
                 Dictionary<string, int> columnIndexes = new Dictionary<string, int>();
 
-                // איתור עמודות לפי כותרות
+                // get name and number columns
                 int totalColumns = worksheet.Dimension.Columns;
                 for (int col = 1; col <= totalColumns; col++)
                 {
                     string header = worksheet.Cells[1, col].Text;
+
+                    //Deletes unnecessary information to user
+                    if (header == "תאריך הרצה אחרונה")
+                    {
+                        worksheet.DeleteColumn(col);
+                        continue;
+                    }
                     columnIndexes[header] = col;
                 }
 
                 int lastRow = worksheet.Dimension.Rows;
                 int startRow = 2;
                 int endRow = Math.Max(lastRow, startRow);
-                // 🎯 **הוספת רשימה נפתחת לעמודה "יום בשבוע"**
+
+                // Add scrolling list with days of the week to column
                 if (columnIndexes.TryGetValue(Day, out int dayColumn))
                 {
                     var daysOfWeek = new[] {" ","ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת" };
@@ -392,31 +401,32 @@ namespace DataAccess
 
                     validation.AllowBlank = false;
 
-                    // בנוסף, אפשר להוסיף הודעת שגיאה במקרה של ערך לא חוקי
+                    // Show error in case invalid value
                     validation.ErrorTitle = "ערך לא חוקי";
                     validation.Error = "עליך לבחור יום מהרשימה.";
                     validation.ShowErrorMessage = true;
                 }
 
-                // 🎯 **הוספת הגבלת שעה לעמודה "שעת התחלה"**
+                // Time column
                 if (columnIndexes.TryGetValue(Houres, out int timeColumn))
                 {
-                    for (int row = 2; row <= lastRow; row++) // עובר על כל השורות בעמודה
+                    for (int row = 2; row <= lastRow; row++) 
                     {
                         if (DateTime.TryParse(worksheet.Cells[row, timeColumn].Text, out DateTime parsedTime))
                         {
-                            worksheet.Cells[row, timeColumn].Value = parsedTime.TimeOfDay.TotalDays; // שומר את הערך כמספר יומי
+                            worksheet.Cells[row, timeColumn].Value = parsedTime.TimeOfDay.TotalDays; 
                         }
                         else
                         {
+                            //Enter 00:00 time in case the value is invalid 
                             worksheet.Cells[row, timeColumn].Value = new DateTime(1, 1, 1, 0, 0, 0).TimeOfDay.TotalDays;
                         }
                     }
 
-                    // קובע פורמט תצוגה של שעה בלבד (ללא תאריך)
+                    // format of clock without data
                     worksheet.Column(timeColumn).Style.Numberformat.Format = "hh:mm";
 
-                    // הוספת הולידציה לחסימת טקסט וערכים לא חוקיים
+                    // validation in order not allow enter invalid value
                     var timeValidation = worksheet.DataValidations.AddCustomValidation(worksheet.Cells[2, timeColumn, lastRow, timeColumn].Address);
                     timeValidation.Formula.ExcelFormula = $"AND(ISNUMBER({worksheet.Cells[2, timeColumn].Address}), {worksheet.Cells[2, timeColumn].Address}=TIME(HOUR({worksheet.Cells[2, timeColumn].Address}), MINUTE({worksheet.Cells[2, timeColumn].Address}), 0))";
                     timeValidation.ShowErrorMessage = true;

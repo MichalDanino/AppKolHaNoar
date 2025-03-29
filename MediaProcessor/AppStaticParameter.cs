@@ -12,6 +12,7 @@ public class AppStaticParameter
     public static List<VideoDetails> videoDownLoad = new List<VideoDetails>();
     public static List<ChannelExtension> channels = new List<ChannelExtension>();
     public static eStatus globalStatus = eStatus.SUCCESS;
+    public static List<string> forbiddenWords = new List<string>();
 }
     
 

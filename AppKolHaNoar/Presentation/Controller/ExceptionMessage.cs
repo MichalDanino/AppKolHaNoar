@@ -51,37 +51,16 @@ public static class ExceptionMessage
 
         // יצירת הדיאלוג
         ContentDialog dialog = new ContentDialog
-        {
-
-
+        { 
             Title = "שגיאה",
-            //Content = new StackPanel
-            //{
-            //    Children =
-            //{
-            //    new SymbolIcon
-            //    {
-            //        Symbol = Symbol.Stop, // אייקון שגיאה
-            //        //Foreground =Microsoft.UI.Xaml.Windows.UI.Color.FromArgb(20,220,37,5),
-            //        Height = 50,
-            //        Width = 50
-            //    },
-            //    new TextBlock
-            //    {
-            //        Text = message.exceptionMessage,
-            //        TextWrapping = TextWrapping.Wrap,
-            //        FontSize = 16,
-            //       // Margin = new Windows.UI.Xaml.Thickness(10)
-            //    }
-            //}
-            //},
+    
             Content = stackPanel,
             
             PrimaryButtonText = "אישור",
+            
             XamlRoot = xamlRoot,
             Background = new SolidColorBrush(Windows.UI.Color.FromArgb(225, 220, 37, 5) ),
             CornerRadius = new CornerRadius(12)
-            //RequestedTheme = Windows.UI.Xaml.ElementTheme.Dark // ניתן לשנות לפי העדפות העיצוב
         };
 
 
