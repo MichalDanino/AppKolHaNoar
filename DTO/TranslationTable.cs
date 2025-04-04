@@ -26,12 +26,12 @@ public class TranslationTable
             { "ChannelExtension_Name", "שם הערוץ" },
             { "ChannelExtension_Long", "מס' השלוחה לסרטונים ארוכים" },
             { "ChannelExtension_Short", "מספר השלוחה לסרטונים קצרים(פחות מ10 דק')" },
-            { "ChannelExtension_Campaign", "מס' קמפיין להפעלה(בעת עדכו ןהשלוחה)" },
+            { "ChannelExtension_Campaign", "מס' קמפיין להפעלה(בעת עדכון השלוחה)" },
             { "ChannelExtension_RunningTime", "שעה לעדכון" },
             { "ChannelExtension_RunningDay", "יום לעדכון" },
-            { "ChannelExtension_RunningLastDay", "תאריך הרצה אחרונה" },
 
 
+            { "ForbiddenWords_ID", "מזהה" },
             { "ForbiddenWords_Word", "מילים לסינון" }
         };
 
@@ -42,15 +42,5 @@ public class TranslationTable
                     { "שינוי שם המפתח יוטיוב","APPLICATION_NAME"} ,
                     { "שינוי סיסמת מנהל לאפליקציה","MANAGERPASSWORD"} };
 
-    public static Dictionary<string, int> keyValuePairs = new Dictionary<string, int>()
-        {
-            {"ראשון",1},
-            {"שני",2},
-            {"שלישי",3},
-            {"רביעי",4},
-            {"חמישי",5},
-            {"שישי",6},
-            {"מוצאי שבת",7},
-        };
 
 }

@@ -58,28 +58,35 @@ public class YemotHamashichAPI
                         if (videoFile.Contains(".mp3"))
                         {
                             VideoDetails videoDetails = AppStaticParameter.videoDownLoad.FirstOrDefault(a => videoFile.Contains(a.VideoDetails_Title));
-
-                            int chunkSize = 50000000; // 1MB
-
-                            await foreach (var chunk in GetChunks(videoFile, chunkSize))
+                            if (videoDetails != null && videoDetails.VideoDetails_ExtensionMapping != "")
                             {
 
-                                MultipartFormDataContent formData = CreateFormData(chunk, videoFile, videoDetails.VideoDetails_ExtensionMapping);
-                                string response = await Uploadfile(formData);
-                                status = await Exceptions.checkUploadFile(response, videoDetails);
 
-                                if (status != eStatus.SUCCESS)
+                                int chunkSize = 50000000; // 1MB
+
+                                await foreach (var chunk in GetChunks(videoFile, chunkSize))
+                                {
+
+                                    MultipartFormDataContent formData = CreateFormData(chunk, videoFile, videoDetails.VideoDetails_ExtensionMapping);
+                                    string response = await Uploadfile(formData);
+                                    status = await Exceptions.checkUploadFile(response, videoDetails);
+
+                                    if (status != eStatus.SUCCESS)
+                                    {
+                                        break;
+                                    }
+                                }
+                                File.Delete(videoFile);
+
+                                // If there is problem with the internet connection stop all uploading
+                                if (status == eStatus.NETWORKERROR)
                                 {
                                     break;
                                 }
                             }
-                            File.Delete(videoFile);
-
-                        }
-                        // If there is problem with the internet connection stop all uploading
-                        if (status == eStatus.NETWORKERROR)
-                        {
-                            break;
+                            else
+                                break;
+                           
                         }
 
                     }

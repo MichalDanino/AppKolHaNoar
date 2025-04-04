@@ -9,21 +9,21 @@ using static Google.Apis.Requests.BatchRequest;
 
 
 namespace MediaProcessor;
-public  class Exceptions
+public class Exceptions
 {
     static GenericMessage _exception;
     static eStatus _error;
     public Exceptions()
     {
         _exception = new GenericMessage();
-        _error= eStatus.SUCCESS;
+        _error = eStatus.SUCCESS;
     }
 
-    public static async Task<eStatus> checkUploadFile(string statusResponse,VideoDetails videoDatails )
+    public static async Task<eStatus> checkUploadFile(string statusResponse, VideoDetails videoDatails)
     {
-             
+
         _error = eStatus.SUCCESS;
-   
+
         List<string> uploadRespone = statusResponse.Split(',').Where(a => a.Contains("responseStatus") || a.Contains
                        ("success")).ToList();
 
@@ -32,7 +32,7 @@ public  class Exceptions
             _error = eStatus.NETWORKERROR;
             _exception.MessageTitle = _error.ToString();
             _exception.MessageContent = "שגיאה בהתחברות לשרת. בדוק חיבור רשת ";
-            
+
             AppConfig.listExceptions.Add(_exception);
 
         }
@@ -48,4 +48,19 @@ public  class Exceptions
         return _error;
     }
 
+    public static async Task<eStatus> checkExtensionMappingValidity(string ChannelID)
+    {
+
+        _error = eStatus.SUCCESS;
+
+            _error = eStatus.FAILED;
+            _exception.MessageTitle = _error.ToString();
+            _exception.MessageContent = $"ערוץ {ChannelID}  לא מכיל נתיב להעלאת הקבצים שלו, אנא עדכנו את המערכת. ";
+
+            AppConfig.listExceptions.Add(_exception);
+
+        
+        return _error;
+
+    }
 }

@@ -19,7 +19,6 @@ public class ChannelExtension
 
     public string ChannelExtension_RunningTime { get; set; }
     public string ChannelExtension_RunningDay { get; set; }
-    public string ChannelExtension_lastRunningData { get; set; }
 
 
 }

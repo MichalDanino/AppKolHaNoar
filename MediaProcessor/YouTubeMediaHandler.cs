@@ -57,14 +57,14 @@ namespace MediaProcessor
         public static DateTime GetLastUpdateExtension(string channelID)
         {
             MultiSourceDataService dataService = new MultiSourceDataService();  
-           ChannelExtension channel =  dataService.GetDBSet<ChannelExtension>().FirstOrDefault(a=> a.ChannelExtension_ChannelID == channelID);
+           ChannelUpdateInfo channel =  AppStaticParameter.channelUpdateInfoList.FirstOrDefault(a=> a.ChannelUpdateInfo_ChannelID == channelID);
             if (channel == null)
             { 
-                DateTime.TryParse(channel.ChannelExtension_RunningDay, out DateTime dateChannel);
+                DateTime.TryParse(channel.ChannelUpdateInfo_lastDataUpdate, out DateTime dateChannel);
                 return dateChannel;
             }
             
-            return DateTime.Now.AddMonths(-1);
+            return DateTime.Now.AddDays(-1);
 
         }
     }

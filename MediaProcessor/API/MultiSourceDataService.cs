@@ -16,15 +16,15 @@ using static DTO.Enums;
 namespace MediaProcessor.API;
 public class MultiSourceDataService
 {
-    SQLiteAccess DBSQLite = new SQLiteAccess(AppConfig.NameDBFile);
+    SQLiteAccess DBSQLite = new SQLiteAccess(AppConfig.pathDBFile);
     ExcelDataAccess DBExcel = new ExcelDataAccess(AppConfig.rootURL);
     static int TotalRowsCount;
 
     #region Database handling
 
-    public bool AddSet<T>(List<T> entity,String key) where T : class
+    public bool AddSet<T>(List<T> entity,String key="") where T : class
     {
-        return DBSQLite.Execute(entity,key, DBConnection.ExecuteActions.Insert);
+        return DBSQLite.Execute(entity,key="", DBConnection.ExecuteActions.Insert);
 
     }
     public bool UpdateSet<T>(List<T> entity, String key) where T : class
@@ -40,7 +40,7 @@ public class MultiSourceDataService
 
     public List<T> GetDBSet<T>(string selectedField = "",string condition="", object parameters = null)
     {
-        DBSQLite = new SQLiteAccess(AppConfig.NameDBFile);
+        DBSQLite = new SQLiteAccess(AppConfig.pathDBFile);
         return DBSQLite.GetDBSet<T>(selectedField,condition,parameters);
     }
      
@@ -51,12 +51,14 @@ public class MultiSourceDataService
         {
             case "עדכון הקמפיינים":
                 status = LoadDataFromDBToExcel<Campaign>();
+                DBExcel.ApplyDataTimeValidation<Campaign>("יום לעדכון", "שעה לעדכון");
+                DBExcel.LockColunm<Campaign>(new List<string>() { "שם הקמפיין", "מס' קמפיין" });
                 break;
-            case "עדכון שלוחות":
-                status = LoadDataFromDBToExcel<CallRoutingDTO>();
-                break;
+            
             case "עדכון ערוצים":
                 status = LoadDataFromDBToExcel<ChannelExtension>();
+                DBExcel.ApplyDataTimeValidation<ChannelExtension>("יום לעדכון", "שעה לעדכון");
+                DBExcel.ApplyNotEmptyValidation<ChannelExtension>(new List<string>() { "מספר השלוחה לסרטונים קצרים(פחות מ10 דק')", "מס' השלוחה לסרטונים ארוכים" });
                 break;
             case "מילים לסינון":
                 status = LoadDataFromDBToExcel<ForbiddenWords>();
@@ -81,12 +83,13 @@ public class MultiSourceDataService
             {
                 case "Campaign":
                     statusDBUdate = SyncDataToDB<Campaign>();
+                  
+
                     break;
-                case "CallRouting":
-                    statusDBUdate = SyncDataToDB<CallRoutingDTO>();
-                    break;
+               
                 case "ChannelExtension":
                     statusDBUdate = SyncDataToDB<ChannelExtension>();
+                  
                     break;
                 case "ForbiddenWords":
                     statusDBUdate = SyncDataToDB<ForbiddenWords>();
@@ -111,7 +114,6 @@ public class MultiSourceDataService
         //Data validation
         if (typeof(T).Name == "ChannelExtension"|| typeof(T).Name == "Campaign")
         {
-            DBExcel.ApplyDataValidation<T>("יום לעדכון","שעה לעדכון");
         }
 
         TotalRowsCount = list.Count;
@@ -133,9 +135,11 @@ public class MultiSourceDataService
             UpdateChannelData(objectList);
         return DBExcel.DeleteExcelPackage<T>();
         }
+        List<T> tempList = FilterListByProperty(objectList,"_ID",0,eFilter.notEqual);
+        DBSQLite.InsetData<T>(tempList);
+        tempList = FilterListByProperty(objectList,"_ID",0,eFilter.EQUALS);
 
-        DBSQLite.UpdatelistData<T>(objectList.GetRange(0,TotalRowsCount));
-        DBSQLite.InsetData<T>(objectList.GetRange(TotalRowsCount,objectList.Count-TotalRowsCount));
+        DBSQLite.UpdatelistData<T>(tempList);
          return DBExcel.DeleteExcelPackage<T>();
     }
 
@@ -166,8 +170,9 @@ public class MultiSourceDataService
     public async Task UpdateChannelData<T>(List<T> objectList) where T : class, new() 
     {
         
+        List<ChannelExtension> channelExtensions = objectList as List<ChannelExtension>?? new List<ChannelExtension>();
 
-        foreach (ChannelExtension channel in objectList as List<ChannelExtension>)
+        foreach (ChannelExtension channel in channelExtensions)
         {
             if (channel.ChannelExtension_ChannelID != null)
             {
@@ -176,20 +181,40 @@ public class MultiSourceDataService
                     channel.ChannelExtension_ChannelID = await YouTubeAPI.GetChannelIdByNameAsync(channel.ChannelExtension_ChannelID);
                 }
             }
+            if(channel.ChannelExtension_Long == "" &&  channel.ChannelExtension_Short == "")
+            {
+          //      efrdc
+        //      await  Exceptions.checkExtensionMappingValidity(channel.ChannelExtension_ChannelID);
+            }
         }
         AppStaticParameter.channels.Clear();
-        AppStaticParameter.channels.AddRange(objectList as List<ChannelExtension>);
+     
 
-        DBSQLite.UpdatelistData<T>(objectList.GetRange(0, TotalRowsCount));
-        DBSQLite.InsetData<T>(objectList.GetRange(TotalRowsCount, objectList.Count - TotalRowsCount));
+        List<T> tempList = FilterListByProperty(objectList, "_ID", 0, eFilter.notEqual);
+        DBSQLite.UpdatelistData<T>(tempList);
+
+       tempList = FilterListByProperty(objectList, "_ID", 0, eFilter.EQUALS);
+        DBSQLite.InsetData<T>(tempList);
+
+        AppStaticParameter.channels.AddRange(GetDBSet<ChannelExtension>());
+
+    }
+    private static List<T> FilterListByProperty<T>(List<T> list, string propertyName, object value ,eFilter filter)
+    {
+        PropertyInfo prop = typeof(T).GetProperties().FirstOrDefault(a => a.Name.Contains(propertyName));
+        if (prop == null) return null; // אם אין מאפיין כזה, דלג על האובייקט
+
+        return list.Where(item =>
+        {
+            return (filter ==eFilter.EQUALS) ? prop.GetValue(item)?.Equals(value) == true: prop.GetValue(item)?.Equals(value) != true;
+        }).ToList();
     }
 
-    
     #endregion
 
 
     #region Configuration file
-    
+
 
     public List<string>   ShowPasswort()
     {

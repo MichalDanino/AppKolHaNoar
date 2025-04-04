@@ -223,10 +223,13 @@ public class YouTubeAPI
                 channelRequest.ForHandle = channelID;  // שם הערוץ בפורמט @Handle
                 var channelResponse = channelRequest.ExecuteAsync().Result;
 
-                if (channelResponse.Items.Count > 0)
+                if (channelResponse.Items != null )
                 {
+                    if (channelResponse.Items.Any())
+                    { 
                     var channel = channelResponse.Items[0];
                     return channel.Id;
+                    }
                 }
                 else
                 {
@@ -302,8 +305,14 @@ public class YouTubeAPI
         if (channel != null)
         {
             int duration = await durationVideo($"https://www.youtube.com/watch?v={video.Id.VideoId}", AppConfig.YouTubeDLPath);
-           
-            VideoDetails videoDetails = new VideoDetails()
+            //ExtensionMapping
+            string ExtensionMapping;
+            if(duration > 10) 
+                ExtensionMapping = (channel[0].ChannelExtension_Long != "")? channel[0].ChannelExtension_Long: channel[0].ChannelExtension_Short;
+            else
+                ExtensionMapping = (channel[0].ChannelExtension_Short !="") ? channel[0].ChannelExtension_Short: channel[0].ChannelExtension_Long;
+
+                VideoDetails videoDetails = new VideoDetails()
             {
                 VideoDetails_VideoID = video.Id.VideoId,
                 VideoDetails_ExtensionMapping = duration > 10 ? channel[0].ChannelExtension_Long : channel[0].ChannelExtension_Short,

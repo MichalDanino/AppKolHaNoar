@@ -7,5 +7,6 @@ using System.Threading.Tasks;
 namespace DTO;
 public class ForbiddenWords
 {
-    string ForbiddenWords_Word {  get; set; }
+   public string ForbiddenWords_ID {  get; set; } 
+   public string ForbiddenWords_Word {  get; set; }
 }

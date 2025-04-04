@@ -81,18 +81,10 @@ namespace DataAccess
                     foreach (PropertyInfo property in properties)
                     {
                         var value = property.GetValue(entity);
-                        uniqueNamecell = property.Name.Contains("_ID");
 
                         worksheet.Cells[s_ExcelRowNumber, col].Value = value?.ToString() ?? string.Empty;
                         worksheet.Cells[s_ExcelRowNumber, col].Style.Locked = false;
-                        if (uniqueNamecell)
-                        {
-
-                            worksheet.Cells[s_ExcelRowNumber, col].Style.Locked = true;
-                            worksheet.Cells[s_ExcelRowNumber, col].Value = value?.ToString() ?? string.Empty;
-
-
-                        }
+                    
 
                         col++;
                     }
@@ -107,6 +99,8 @@ namespace DataAccess
 
                 package.Save();
             }
+            LockColunm<T>(new List<string>() { "מזהה" });
+
             return true;
         }
         public override bool UpdateData<T>(T DataUpdate) where T : class
@@ -351,7 +345,7 @@ namespace DataAccess
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public bool ApplyDataValidation<T>(string Day,String Houres) where T : class
+        public bool ApplyDataTimeValidation<T>(string Day,String Houres) where T : class
         {
             string filePath = GetFilePath<T>();
             if (!File.Exists(filePath))
@@ -373,13 +367,6 @@ namespace DataAccess
                 for (int col = 1; col <= totalColumns; col++)
                 {
                     string header = worksheet.Cells[1, col].Text;
-
-                    //Deletes unnecessary information to user
-                    if (header == "תאריך הרצה אחרונה")
-                    {
-                        worksheet.DeleteColumn(col);
-                        continue;
-                    }
                     columnIndexes[header] = col;
                 }
 
@@ -440,5 +427,94 @@ namespace DataAccess
             return true;
         }
 
+        public bool ApplyNotEmptyValidation<T>(List<string> colunmName) where T : class
+        {
+            string filePath = GetFilePath<T>();
+            if (!File.Exists(filePath))
+                return false;
+
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
+            // open Sheet
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+                if (worksheet.Dimension == null)
+                    return false;
+
+                Dictionary<string, int> columnIndexes = new Dictionary<string, int>();
+
+                // get name and number columns
+                int totalColumns = worksheet.Dimension.Columns;
+                for (int col = 1; col <= totalColumns; col++)
+                {
+                    string header = worksheet.Cells[1, col].Text;
+                    columnIndexes[header] = col;
+                }
+
+                int lastRow = worksheet.Dimension.Rows;
+                int startRow = 2;
+                int endRow = Math.Max(lastRow, startRow);
+                foreach (var item in colunmName)
+                {
+
+
+                    // Add scrolling list with days of the week to column
+                    if (columnIndexes.TryGetValue(item, out int EmptyColumnNumber))
+                    {
+                        var validation = worksheet.DataValidations.AddCustomValidation(
+                       worksheet.Cells[startRow, EmptyColumnNumber, endRow, EmptyColumnNumber].Address);
+
+                        validation.Formula.ExcelFormula  = "LEN(" + worksheet.Cells[startRow, EmptyColumnNumber].Address + ")>0";
+
+                        validation.ShowErrorMessage = true;
+                        validation.ErrorTitle = "שגיאה!";
+                        validation.Error = "אסור להשאיר את התא ריק!";
+
+                    }
+
+
+                }
+
+                package.Save();
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">can be full name of property or part of string</typeparam>
+        /// <param name="nameProperties"></param>
+        public void LockColunm<T>(List< string> nameProperties) where T : class
+        {
+            string path = GetFilePath<T>();
+
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage(new FileInfo(path)))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+
+                int columnIndex = -1;
+                
+
+                for (int col = 1; col <= worksheet.Dimension.Columns; col++)
+                {
+                    string PropertyToLock = nameProperties.FirstOrDefault(a => worksheet.Cells[1, col].Text.Contains(a));
+                    if (PropertyToLock != null) // מניח שהשורה הראשונה היא כותרת
+                    {
+                        columnIndex = col;
+                        worksheet.Cells[1, columnIndex, worksheet.Dimension.Rows, columnIndex].Style.Locked = true;
+                        nameProperties.Remove(PropertyToLock);
+
+                        if (!nameProperties.Any())
+                            break;
+                    }
+
+
+                }
+                package.Save();
+            }
+        }
     }
 }

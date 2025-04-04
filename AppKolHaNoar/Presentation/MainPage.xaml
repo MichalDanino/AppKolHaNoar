@@ -70,6 +70,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      
       xmlns:local="using:AppKolHaNoar.Services"
       xmlns:uen="using:Uno.Extensions.Navigation.UI"
       xmlns:utu="using:Uno.Toolkit.UI"
@@ -95,12 +96,12 @@
             </Grid.ColumnDefinitions>
 
             <!-- Header -->
-            <StackPanel Background="Black"  Grid.Column="0" HorizontalAlignment="Left" Padding="40,200"  >
+            <StackPanel Background="Black"  Grid.Column="0" HorizontalAlignment="Left" Padding="0,190"  >
                 <StackPanel CornerRadius="40" >
 
 
 
-                    <Button x:Name="Profile" Background="Black"
+                    <Button x:Name="Profile" Background="Black" MinHeight="120"
                  Width="120"  Command="{Binding ShowDialoPasswordCommand,Mode=TwoWay}">
                         <Image Source="ms-appx:///Assets/unnamed.jpg" Stretch="UniformToFill" HorizontalAlignment="Center"/>
 
@@ -113,7 +114,7 @@
             </StackPanel>
 
             <!-- Content -->
-            <StackPanel  Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
+            <StackPanel  Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="50">
 
                 <!-- Search Box -->
                 <Border Background="White" Padding="8,50" CornerRadius="10"  Width="300">
@@ -143,17 +144,22 @@
                     <ComboBox x:Name="comboBoxChannel" Width="300" ItemsSource="{Binding Channels}"
                   DisplayMemberPath="ChannelExtension_Name"
                   SelectedItem="{Binding SelectedChannel, Mode=TwoWay}"/>
-                        <Button x:Name="RunUpdating" Content="התחל הרצה"  HorizontalAlignment="Center" Width="150" Command="{Binding SendSelectedChannelCommand,Mode=TwoWay}"/>
+                        <Button x:Name="RunUpdating" Content="התחל הרצה" Padding="20"  HorizontalAlignment="Center" Width="150" Command="{Binding SendSelectedChannelCommand,Mode=TwoWay}"/>
                     </StackPanel>
                 </Border>
                
 
             </StackPanel>
             <!-- Buttons -->
-            <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Vertical" Spacing="10" HorizontalAlignment="Center"  VerticalAlignment="Center">
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="50" Padding="100" HorizontalAlignment="Center"  VerticalAlignment="Bottom">
                 <Button x:Name="ChangeDB" Content="הוסף\שנה מידע"  Foreground="Red" HorizontalAlignment="Center" Width="150" Command="{Binding SendSelectedinfoCommand,Mode=TwoWay}" />
                 <Button x:Name="Password" Content="שנה סיסמאות" HorizontalAlignment="Center" Foreground="Red" Width="150" Command="{Binding ShowDialogToChangePasswordCommand,Mode=TwoWay}"/>
-               
+                <!--<utu:AutoLayout PrimaryAxisAlignment="Center" CounterAxisAlignment="Center" Orientation="Horizontal" Padding="67,16" utu:AutoLayout.PrimaryAlignment="Stretch">
+                    <Rectangle RadiusX="2" RadiusY="2" Fill="Orange" Width="16" Height="16"  />
+                </utu:AutoLayout>-->
+
+
+
             </StackPanel>
             <ProgressRing x:Name="loadingRing" HorizontalAlignment="Center" VerticalAlignment="Center" IsActive="False"/>
             <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Background="WhiteSmoke">
@@ -169,7 +175,6 @@
                  Visibility ="{Binding LoadingVisibility}"
                HorizontalAlignment="Center" VerticalAlignment="Center"
                Margin="0,20,0,0" FontSize="16"/>
-
             </StackPanel>
         </Grid>
     </ScrollViewer>

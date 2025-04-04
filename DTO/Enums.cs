@@ -28,4 +28,9 @@ public static class Enums
         ERROR,
         INPUT
     }
+    public enum eFilter
+    {
+        EQUALS,
+        notEqual
+    }
 }

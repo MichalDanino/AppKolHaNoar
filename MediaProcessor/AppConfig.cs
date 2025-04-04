@@ -22,7 +22,7 @@ namespace MediaProcessor
         public static string passwordYH = "";
         public static string apiKeyYT = "";
         public static string apiProjectNameYT = "";
-        public static string NameDBFile = "";
+        public static string pathDBFile = "";
         public static string YouTubeDLPath = "";
         public static string FFmpegPath = "";
         public static string ManagerPassword = "";
@@ -47,11 +47,11 @@ namespace MediaProcessor
             // The static constructor of the AppConfig class- executes only once 
             // when the AppConfig class is loaded for the first time, 
             // meaning when it is first accessed in the code.
-           // Dictionary<string, string> config = ReadEnv();
-           // string fileENV = MainDirectoryPath + @".env";
+            //Dictionary<string, string> config = ReadEnv();
+            //string fileENV = MainDirectoryPath + @".env";
             //Env.Load(fileENV);
             //passwordYH = config["PASSWORD"];
-            //UserNameYH = config["USERNAME"];
+            //UserNameYH = "0795553875";
             //rootURL = config["ROOTURL"];
             //apiKeyYT = config["YOUTUBE_API_KEY"];
             //apiProjectNameYT = config["APPLICATION_NAME"];
@@ -59,7 +59,7 @@ namespace MediaProcessor
             //ManagerPassword = config["MANAGERPASSWORD"];
             //listExceptions = new List<GenericMessage>();
             //NameDBFile = rootURL + "my_database.db";
-            passwordYH ="3953";
+            passwordYH = "3953";
             UserNameYH = "0795553875";
             rootURL = @"C:\Program Files\KolHaNoar\";
             apiKeyYT = "AIzaSyChVkppCJxUXR9UcE_BOo9FxiYUS - Kjnok";
@@ -68,7 +68,7 @@ namespace MediaProcessor
             FFmpegPath = @"C:\yt-dlgANDffmpeg\yt-dlg\ffmpeg.exe";
             ManagerPassword = "fvf";
             listExceptions = new List<GenericMessage>();
-            NameDBFile = rootURL + "my_database.db";
+            pathDBFile = rootURL + "my_database.db";
             UpdateVideoSync();
         }
 

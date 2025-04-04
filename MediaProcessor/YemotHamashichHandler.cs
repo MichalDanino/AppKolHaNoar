@@ -17,7 +17,7 @@ namespace MediaProcessor
     public class YemotHamashichHandler
     {
         YemotHamashichHandler HandlerYH  = new YemotHamashichHandler();
-        SQLiteAccess Access = new SQLiteAccess(AppConfig.NameDBFile);
+        SQLiteAccess Access = new SQLiteAccess(AppConfig.pathDBFile);
         
         public bool UplaodFiles()
         {

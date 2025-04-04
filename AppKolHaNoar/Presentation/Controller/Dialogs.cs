@@ -20,7 +20,7 @@ public class Dialogs
     private static ContentDialog currentDialog;
     private static ProgressBar progressBar;
     private static MultiSourceDataService updateDB = new MultiSourceDataService();
-    private static List<string> nameTable = new List<string>() { "מילים לסינון","עדכון הקמפיינים", "עדכון שלוחות", "עדכון ערוצים" };
+    private static List<string> nameTable = new List<string>() { "מילים לסינון","עדכון הקמפיינים", "עדכון ערוצים" };
    
     private static int timeOut;
     private TaskCompletionSource<string> dialogResultSource = new TaskCompletionSource<string>();

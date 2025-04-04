@@ -23,6 +23,7 @@ public class ServiceUI : ContentDialog
 public static YouTubeMediaHandler youTubeMediaHandler = new YouTubeMediaHandler();
 public static YemotHamashichAPI yemotHamashichAPI = new YemotHamashichAPI();
 public static MultiSourceDataService DB = new MultiSourceDataService();
+    public ProcessingWorkflow processingWorkflow= new ProcessingWorkflow();
 public static string GlobalMessageDialog = "האם אתה מאשר?";
 public static XamlRoot MainPageXamlRoot;
 GenericMessage message = new GenericMessage();
@@ -36,22 +37,16 @@ GenericMessage message = new GenericMessage();
     /// <param name="channelID"></param>
     /// <returns></returns>
     public async Task UpdateExtension(string channelID)
-{
-    eStatus status = eStatus.SUCCESS;
-    status = youTubeMediaHandler.CheckForNewVideos(channelID);
-   
-
-        if (status == eStatus.SUCCESS)
+    {   
+        eStatus status;
+        status = await processingWorkflow.UpdateExtension(channelID);
+        if (MediaProcessor.AppConfig.listExceptions.Any())
         {
-            await yemotHamashichAPI.UplaodFiles();
-
-            if (MediaProcessor.AppConfig.listExceptions.Any())
-            {
                 await ShowExceptionWithList();
 
-            }
+            
         }
-    else
+    if(status != eStatus.SUCCESS)
     {
         if (status == eStatus.APIQuota)
         {
@@ -97,37 +92,7 @@ public async Task<ContentDialogResult> ShowMessageByDialog(GenericMessage except
     
     }
 
-    public bool run()
-    {
-        List<DateTime> list = new List<DateTime>();
-        List<ChannelExtension> channelExtensions = new List<ChannelExtension>();
-        List<Campaign> campaigns = new List<Campaign>();    
-        var channel =  DB.GetDBSet<ChannelExtension>().FindAll(a => a.ChannelExtension_RunningTime != null);
-       var campin=  DB.GetDBSet<Campaign>().FindAll(a => a.Campaign_RunningTime != null);
-        foreach (var channelExtension in channel)
-        {
-            DateTime.TryParse(channelExtension.ChannelExtension_RunningTime, out DateTime dateTime);
-           if( dateTime.Hour == DateTime.Now.Hour)
-                channelExtensions.Add(channelExtension);
-        }
-        foreach (var campain1 in campin)
-        {
-            DateTime.TryParse(campain1.Campaign_RunningTime, out DateTime dateTime);
-            if (dateTime.Hour == DateTime.Now.Hour)
-                campaigns.Add(campain1);    
-
-        }
-        foreach (var item in campaigns)
-        {
-            RunCampaign(item);
-            campaigns.Remove(item);
-        }
-        foreach(var item in channelExtensions)
-        {
-            UpdateExtension(item.ChannelExtension_ChannelID);
-        }
-        return true;
-    }
+       
 
     public static async Task ShowException(GenericMessage exception)
 {
@@ -141,7 +106,6 @@ public static async Task ShowExceptionWithList()
 
 public bool RunCampaign(Campaign campaign)
 {
-
     if (campaign != null&& campaign.Campaign_Name!="")
     {
         yemotHamashichAPI.RunCampaign(campaign.Campaign_Number);

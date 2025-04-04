@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using AppKolHaNoar.Services;
 using Uno.Resizetizer;
+using Windows.ApplicationModel.Core;
 
 namespace AppKolHaNoar;
 public partial class App : Application
@@ -24,7 +25,13 @@ public partial class App : Application
 
         if (isNoGuiMode)
         {
-            RunBackgroundProcess();
+            
+            string channelIdArg = commandLineArgs.FirstOrDefault(arg => arg.StartsWith("--channel-id"))??"";
+            string campaignIdArg = commandLineArgs.FirstOrDefault(arg => arg.StartsWith("--campaign-id")) ?? "";
+            
+            RunBackgroundProcess("Dd","dd");
+          //  CoreApplication.Exit(); // סוגר את האפליקציה
+
             return;
         }
 
@@ -102,10 +109,30 @@ public partial class App : Application
         Host = await builder.NavigateAsync<Shell>();
     }
 
-    private void RunBackgroundProcess()
+    private void RunBackgroundProcess(string campaignID, string channelID)
     {
-        BackgroundTask serviceUI = new BackgroundTask();
-        serviceUI.run();
+        string filePath = @"C:\Users\Michal\Desktop\file.txt"; // שנה לנתיב מתאים
+
+        // טקסט שברצונך לכתוב לקובץ
+        string content = "שלום עולם!";
+
+        try
+        {
+            // פתיחה לכתיבה לקובץ עם StreamWriter
+            using (StreamWriter writer = new StreamWriter(filePath, append: true))  // append: true יוסיף לקובץ אם הוא קיים
+            {
+                writer.WriteLine(content);  // כותב שורה לקובץ
+            }
+            Console.WriteLine("הטקסט נכתב בהצלחה לקובץ!");
+        }
+        catch (Exception ex)
+        {
+            // טיפול בשגיאות
+            Console.WriteLine($"שגיאה: {ex.Message}");
+        }
+        //BackgroundTask serviceUI = new BackgroundTask();
+        //TO DO
+        //serviceUI.run(string campaignID, string channelID);
     }
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)
     {

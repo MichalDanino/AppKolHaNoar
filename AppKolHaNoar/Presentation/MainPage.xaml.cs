@@ -59,7 +59,6 @@ public sealed partial class MainPage : Page
         RunUpdating.DataContext = ViewModel;
         ChangeDB.DataContext = ViewModel;
         RunCampain.DataContext = ViewModel;
-      
         Password.DataContext = ViewModel;
         ViewModel.AutoSuggestVM.isGetDataFromService();
         comboBoxChannel.DataContext = ViewModel;
