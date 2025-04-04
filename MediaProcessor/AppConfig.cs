@@ -59,10 +59,10 @@ namespace MediaProcessor
             //ManagerPassword = config["MANAGERPASSWORD"];
             //listExceptions = new List<GenericMessage>();
             //NameDBFile = rootURL + "my_database.db";
-            passwordYH = "3953";
+            passwordYH = "";
             UserNameYH = "0795553875";
             rootURL = @"C:\Program Files\KolHaNoar\";
-            apiKeyYT = "AIzaSyChVkppCJxUXR9UcE_BOo9FxiYUS - Kjnok";
+            apiKeyYT = "";
             apiProjectNameYT = "My First Project";
             YouTubeDLPath = @"C:\yt-dlgANDffmpeg\yt-dlg\yt-dlp.exe";
             FFmpegPath = @"C:\yt-dlgANDffmpeg\yt-dlg\ffmpeg.exe";
