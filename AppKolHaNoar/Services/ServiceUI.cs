@@ -16,7 +16,7 @@ using Microsoft.UI.Xaml;
 using static DTO.Enums;
 using System.Diagnostics;
 namespace AppKolHaNoar.Services;
-public class ServiceUI : ContentDialog
+public partial class ServiceUI : ContentDialog
 {
 //#if WINDOWS
 
